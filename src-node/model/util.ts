@@ -1,6 +1,6 @@
 //This regex is for parsing a connection string into it's parts.
 //I don't think it's perfect, but it works for my purposes
-const connStringRegex = /^mysql:\/\/([^:])*:([^@])*@([^:])*:([^/])*(.*)$/;
+const connStringRegex = /^mysql:\/\/([^:])*:([^@])*@([^:])*:([^/])*([^?]*)/;
 
 type ConnDetails = {
     host: string;
