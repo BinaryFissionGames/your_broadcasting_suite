@@ -4,11 +4,10 @@
   "description": "",
   "main": "build-node/index.js",
   "scripts": {
-    "build": "tsc",
-    "build-test": "tsc --project test.tsconfig.json",
+    "build": "npx prisma generate && tsc",
+    "build-test": "npx prisma generate && tsc --project test.tsconfig.json",
     "clean": "rm -r build-node",
     "clean_windows": "rd /s /q .\\build-node",
-    "db_migrate": "npx sequelize-cli db:migrate",
     "test": "mocha build-node/test/**/*",
     "run": "node -r dotenv/config build-node/index.js dotenv_config_path=config.env"
   },
@@ -17,18 +16,18 @@
   "license": "MIT",
   "dependencies": {
     "@binaryfissiongames/twitch-webhooks": "^1.1.6",
-    "@types/bluebird": "^3.5.30",
+    "@prisma/client": "^2.0.0-beta.5",
     "@types/mocha": "^7.0.2",
     "@types/node": "^13.13.6",
     "@types/validator": "^13.0.0",
-    "connect-session-sequelize": "^6.1.1",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
+    "express-mysql-session": "^2.1.4",
     "express-session": "^1.17.1",
     "mocha": "^7.1.2",
-    "sequelize": "^5.21.8",
-    "sequelize-cli": "^5.5.1",
-    "sqlite3": "^4.2.0",
     "twitch-oauth-authorization-code-express": "^2.0.0"
+  },
+  "devDependencies": {
+    "@prisma/cli": "^2.0.0-beta.5"
   }
 }

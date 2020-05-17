@@ -1,0 +1,46 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+datasource mysql {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+
+model User {
+    id Int @default(autoincrement()) @id
+    twitchUserName String
+    twitchId String @unique
+    createdAt DateTime @default(now())
+    webhook Webhook[]
+    token Token?
+}
+
+model Token {
+    id Int @default(autoincrement()) @id
+    ownerId Int? @unique
+    owner User? @relation(fields: [ownerId], references: [id])
+    oAuthToken String @unique
+    refreshToken String?
+    tokenExpiry DateTime
+    scopes String
+    createdAt DateTime @default(now())
+}
+
+model Webhook {
+    id String @id
+    type Int
+    ownerId Int?
+    owner User? @relation(fields: [ownerId], references: [id])
+    href String
+    subscribed Boolean
+    subscriptionStart DateTime?
+    subscriptionEnd DateTime?
+    secret String
+    leaseSeconds Int
+    createdAt DateTime @default(now())
+}
