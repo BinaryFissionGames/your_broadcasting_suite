@@ -6,17 +6,18 @@
   "scripts": {
     "build": "npx prisma generate && tsc",
     "build-test": "npx prisma generate && tsc --project test.tsconfig.json",
-    "clean": "rm -r build-node",
-    "clean_windows": "rd /s /q .\\build-node",
+    "clean": "rm -rf ./dist || rd /s /q .\\dist",
     "test": "mocha build-node/test/**/*",
-    "run": "node -r dotenv/config build-node/index.js dotenv_config_path=config.env"
+    "run": "node -r dotenv/config build-node/index.js dotenv_config_path=config.env",
+    "migrate": "knex migrate:latest"
   },
   "keywords": [],
   "author": "Brandon Johnson <BinaryFissionGames@gmail.com>",
   "license": "MIT",
   "dependencies": {
-    "@binaryfissiongames/twitch-webhooks": "^1.1.6",
+    "@binaryfissiongames/twitch-webhooks": "^2.0.1",
     "@prisma/client": "^2.0.0-beta.5",
+    "@types/express-mysql-session": "^2.1.1",
     "@types/mocha": "^7.0.2",
     "@types/node": "^13.13.6",
     "@types/validator": "^13.0.0",
@@ -24,7 +25,10 @@
     "express": "^4.17.1",
     "express-mysql-session": "^2.1.4",
     "express-session": "^1.17.1",
+    "got": "^11.1.4",
+    "knex": "^0.21.1",
     "mocha": "^7.1.2",
+    "mysql2": "^2.1.0",
     "twitch-oauth-authorization-code-express": "^2.0.0"
   },
   "devDependencies": {
