@@ -33,16 +33,20 @@ app.use(session(sess)); // Need to set up session middleware
 setupTwitchOAuthPath({
     app: app, // The express app
     callback: ((req, res, info) => {
+        //TODO: Create user, store USER ID w/ session, not token info
+        //If this is the user's first time logging in, set up webhooks
         req.session.access_token = info.access_token;
         req.session.refresh_token = info.refresh_token;
-        res.redirect(307, "/success");
+        res.redirect(307, process.env.APPLICATION_URL);
         res.end();
     }), // Callback when oauth info is gotten. Session info should be used
     client_id: process.env.CLIENT_ID, // Twitch client ID
     client_secret: process.env.CLIENT_SECRET, // Twitch client secret
     force_verify: true, // If true, twitch will always ask the user to verify. If this is false, if the app is already authorized, twitch will redirect immediately back to the redirect uri
     redirect_uri: process.env.REDIRECT_URI, // URI to redirect to (this is the URI on this server, so the path defines the endpoint!)
-    scopes: ['channel:read:subscriptions', 'user:read:email', 'moderation:read'] // List of scopes your app is requesting access to
+    scopes: ['channel:read:subscriptions', 'user:read:email', 'moderation:read'], // List of scopes your app is requesting access to
+    token_url: process.env.NODE_ENV == 'development' ? process.env.MOCK_TOKEN_URL : undefined,
+    authorize_url: process.env.NODE_ENV == 'development' ? process.env.MOCK_AUTH_URL : undefined
 });
 
 let resubScheduler = new BasicWebhookRenewalScheduler();
@@ -55,7 +59,8 @@ let webhookManager: TwitchWebhookManager = new TwitchWebhookManager({
     renewalScheduler: resubScheduler,
     persistenceManager: new SequelizeTwitchWebhookPersistenceManager(prisma),
     getOAuthToken: (userId) => getOAuthToken(prisma, userId),
-    refreshOAuthToken: (token) => refreshToken(prisma, token)
+    refreshOAuthToken: (token) => refreshToken(prisma, token),
+    hubUrl: process.env.NODE_ENV == 'development' ? process.env.MOCK_HUB_URL : undefined
 });
 
 webhookManager.on('message', () => {});
