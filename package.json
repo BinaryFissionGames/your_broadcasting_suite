@@ -32,6 +32,8 @@
     "twitch-oauth-authorization-code-express": "^2.1.0"
   },
   "devDependencies": {
-    "@prisma/cli": "^2.0.0-beta.8"
+    "@prisma/cli": "^2.0.0-beta.8",
+    "twitch-mock-oauth-server": "^0.5.1",
+    "twitch-mock-webhook-hub": "^0.3.8"
   }
 }
