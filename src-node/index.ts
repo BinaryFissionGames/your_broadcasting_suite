@@ -1,7 +1,8 @@
 import {setupTwitchOAuthPath} from "twitch-oauth-authorization-code-express";
 import express = require("express");
 import * as session from "express-session";
-import * as mysql_session from 'express-mysql-session';
+import mysql_session = require("express-mysql-session");
+
 import {SessionOptions} from "express-session";
 import {TwitchWebhookManager} from "@binaryfissiongames/twitch-webhooks";
 import {BasicWebhookRenewalScheduler} from "@binaryfissiongames/twitch-webhooks/dist/scheduling";
@@ -9,7 +10,7 @@ import {setupRoutes} from "./routes";
 import * as https from "https";
 import * as http from "http";
 import * as fs from "fs";
-import {getWebhookMessageCallback, SequelizeTwitchWebhookPersistenceManager} from "./webhooks";
+import {SequelizeTwitchWebhookPersistenceManager} from "./webhooks";
 import {getOAuthToken, refreshToken} from "./request";
 import {parseMySqlConnString} from "./model/util";
 import { PrismaClient } from '@prisma/client'
@@ -17,12 +18,12 @@ import { PrismaClient } from '@prisma/client'
 const prisma = new PrismaClient();
 
 const MySqlStore = mysql_session(session);
-let options = parseMySqlConnString(process.env.DATABASE_URL);
+let mySqlStoreOptions = parseMySqlConnString(process.env.DATABASE_URL);
 
 const app = express();
 let sess: SessionOptions = {
     secret: process.env.SESSION_SECRET,
-    store: new MySqlStore(options),
+    store: new MySqlStore(mySqlStoreOptions),
     resave: false,
     saveUninitialized: false
 };
@@ -54,12 +55,10 @@ let webhookManager: TwitchWebhookManager = new TwitchWebhookManager({
     renewalScheduler: resubScheduler,
     persistenceManager: new SequelizeTwitchWebhookPersistenceManager(prisma),
     getOAuthToken: (userId) => getOAuthToken(prisma, userId),
-    refreshOAuthToken: (token) => refreshToken(token, prisma)
+    refreshOAuthToken: (token) => refreshToken(prisma, token)
 });
 
-resubScheduler.setManager(webhookManager);
-
-webhookManager.on('message', getWebhookMessageCallback(webhookManager));
+webhookManager.on('message', () => {});
 webhookManager.on('error', (e) => {
     console.log(e)
 });

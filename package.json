@@ -1,6 +1,6 @@
 {
   "name": "binaryfissiongames-twitch-broadcasting-suite",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "",
   "main": "build-node/index.js",
   "scripts": {
@@ -29,7 +29,7 @@
     "knex": "^0.21.1",
     "mocha": "^7.1.2",
     "mysql2": "^2.1.0",
-    "twitch-oauth-authorization-code-express": "^2.0.0"
+    "twitch-oauth-authorization-code-express": "^2.1.0"
   },
   "devDependencies": {
     "@prisma/cli": "^2.0.0-beta.5"
