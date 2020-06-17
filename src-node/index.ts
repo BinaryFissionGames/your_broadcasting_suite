@@ -13,12 +13,11 @@ import * as fs from "fs";
 import {SequelizeTwitchWebhookPersistenceManager} from "./webhooks";
 import {getOAuthToken, refreshToken} from "./request";
 import {parseMySqlConnString} from "./model/util";
-import { PrismaClient } from '@prisma/client'
-import {closeMockServer as closeAuthMockServer, setUpMockAuthServer} from "twitch-mock-oauth-server/dist";
+import {addClient, closeMockServer as closeAuthMockServer, setUpMockAuthServer} from "twitch-mock-oauth-server/dist";
 import {closeMockServer as closeWebhookMockServer, setUpMockWebhookServer} from "twitch-mock-webhook-hub/dist";
 import {promisify} from "util";
-
-const prisma = new PrismaClient();
+import {prisma} from "./model/prisma";
+import {createOrGetUser} from "./model/administrator/user";
 
 const MySqlStore = mysql_session(session);
 let mySqlStoreOptions = parseMySqlConnString(process.env.DATABASE_URL);
@@ -35,11 +34,11 @@ app.use(session(sess)); // Need to set up session middleware
 
 setupTwitchOAuthPath({
     app: app, // The express app
-    callback: ((req, res, info) => {
-        //TODO: Create user, store USER ID w/ session, not token info
-        //If this is the user's first time logging in, set up webhooks
-        req.session.access_token = info.access_token;
-        req.session.refresh_token = info.refresh_token;
+    callback: (async (req, res, info) => {
+        let user = await createOrGetUser(info);
+        req.session.userId = user.id;
+        //TODO: If this is the user's first time logging in, set up webhooks
+
         res.redirect(307, process.env.APPLICATION_URL);
         res.end();
     }), // Callback when oauth info is gotten. Session info should be used
@@ -60,9 +59,9 @@ let webhookManager: TwitchWebhookManager = new TwitchWebhookManager({
     client_id: process.env.CLIENT_ID,
     base_path: 'webhooks',
     renewalScheduler: resubScheduler,
-    persistenceManager: new SequelizeTwitchWebhookPersistenceManager(prisma),
-    getOAuthToken: (userId) => getOAuthToken(prisma, userId),
-    refreshOAuthToken: (token) => refreshToken(prisma, token),
+    persistenceManager: new SequelizeTwitchWebhookPersistenceManager(),
+    getOAuthToken: (userId) => getOAuthToken(userId),
+    refreshOAuthToken: (token) => refreshToken(token),
     hubUrl: process.env.NODE_ENV == 'development' ? process.env.MOCK_HUB_URL : undefined
 });
 
@@ -71,7 +70,7 @@ webhookManager.on('error', (e) => {
     console.log(e)
 });
 
-setupRoutes(app, webhookManager, prisma);
+setupRoutes(app, webhookManager);
 
 let server: http.Server;
 let httpsServer: https.Server;
@@ -112,9 +111,12 @@ async function startup(){
         await setUpMockAuthServer({
             token_url: process.env.MOCK_TOKEN_URL,
             authorize_url: process.env.MOCK_AUTH_URL,
+            validate_url: process.env.MOCK_VALIDATE_URL,
             port: 5080,
             logErrors: true
         });
+
+        await addClient(process.env.CLIENT_ID, process.env.CLIENT_SECRET);
 
         await setUpMockWebhookServer({
             hub_url: process.env.MOCK_HUB_URL,

@@ -2,17 +2,12 @@ import {
     TwitchWebhookPersistenceManager, WebhookPersistenceObject
 } from "@binaryfissiongames/twitch-webhooks/dist";
 import {WebhookType} from "@binaryfissiongames/twitch-webhooks";
-import {PrismaClient, Webhook} from '@prisma/client'
+import {Webhook} from '@prisma/client'
+import {prisma} from "./model/prisma";
 
 class SequelizeTwitchWebhookPersistenceManager implements TwitchWebhookPersistenceManager {
-    protected prisma: PrismaClient;
-
-    constructor(prisma: PrismaClient) {
-        this.prisma = prisma;
-    }
-
     async deleteWebhook(webhookId: string): Promise<void> {
-        await this.prisma.webhook.delete({
+        await prisma.webhook.delete({
             where: {
                 id: webhookId
             }
@@ -23,12 +18,12 @@ class SequelizeTwitchWebhookPersistenceManager implements TwitchWebhookPersisten
     }
 
     async getAllWebhooks(): Promise<WebhookPersistenceObject[]> {
-        let webhooks = await this.prisma.webhook.findMany();
+        let webhooks = await prisma.webhook.findMany();
         return webhooks.map(this.modelToObject);
     }
 
     async getWebhookById(webhookId: string): Promise<WebhookPersistenceObject> {
-        let webhook = await this.prisma.webhook.findOne({where: {id: webhookId}});
+        let webhook = await prisma.webhook.findOne({where: {id: webhookId}});
         if (webhook === null) {
             return null;
         }
@@ -59,7 +54,7 @@ class SequelizeTwitchWebhookPersistenceManager implements TwitchWebhookPersisten
                 break;
         }
 
-        let user = await this.prisma.user.findOne({
+        let user = await prisma.user.findOne({
             where: {
                 twitchId: twitchUserId
             }
@@ -67,13 +62,13 @@ class SequelizeTwitchWebhookPersistenceManager implements TwitchWebhookPersisten
 
         let webhookDataObject = Object.assign({owner: user}, webhook);
 
-        await this.prisma.webhook.create({
+        await prisma.webhook.create({
             data: webhookDataObject
         });
     }
 
     async saveWebhook(webhook: WebhookPersistenceObject): Promise<void> {
-        await this.prisma.webhook.update({
+        await prisma.webhook.update({
             where: {id: webhook.id},
             data: webhook
         });

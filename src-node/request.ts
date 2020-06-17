@@ -1,10 +1,11 @@
 import * as oauth from "twitch-oauth-authorization-code-express"
-import {PrismaClient, Token} from '@prisma/client'
+import {Token} from '@prisma/client'
 import {parseScopesArray} from "./model/util";
 import got from 'got';
 import {TokenInfo} from "twitch-oauth-authorization-code-express";
+import {prisma} from "./model/prisma";
 
-async function getOAuthToken(prisma: PrismaClient, userId?: string,): Promise<string> {
+async function getOAuthToken(userId?: string): Promise<string> {
     if (userId) {
         let user = await prisma.user.findOne({
             where: {twitchId: userId},
@@ -23,11 +24,11 @@ async function getOAuthToken(prisma: PrismaClient, userId?: string,): Promise<st
             return token.oAuthToken;
         }
 
-        return (await requestAppToken([], prisma)).oAuthToken;
+        return (await requestAppToken([])).oAuthToken;
     }
 }
 
-async function refreshToken(prisma: PrismaClient, oAuthToken: string): Promise<string> {
+async function refreshToken(oAuthToken: string): Promise<string> {
     let token = await prisma.token.findOne({where: {oAuthToken: oAuthToken}});
     if (token) {
         let scopes = parseScopesArray(token.scopes);
@@ -37,7 +38,7 @@ async function refreshToken(prisma: PrismaClient, oAuthToken: string): Promise<s
                     id: token.id
                 }
             });
-            return (await requestAppToken(scopes, prisma)).oAuthToken;
+            return (await requestAppToken(scopes)).oAuthToken;
         } else {
             let info = await oauth.refreshToken(token.refreshToken, process.env.CLIENT_ID, process.env.CLIENT_SECRET, scopes);
             //TODO: Update refresh token endpoint to return token expiry and stuff
@@ -59,7 +60,7 @@ async function refreshToken(prisma: PrismaClient, oAuthToken: string): Promise<s
     }
 }
 
-async function requestAppToken(scopes: string[], prisma: PrismaClient): Promise<Token> {
+async function requestAppToken(scopes: string[]): Promise<Token> {
     let reqUrl = new URL('https://id.twitch.tv/oauth2/token');
     reqUrl.searchParams.set('client_id', process.env.CLIENT_ID);
     reqUrl.searchParams.set('client_secret', process.env.CLIENT_SECRET);

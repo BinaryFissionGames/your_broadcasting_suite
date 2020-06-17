@@ -17,15 +17,19 @@
   "dependencies": {
     "@binaryfissiongames/twitch-webhooks": "^2.0.1",
     "@prisma/client": "^2.0.0-beta.5",
+    "@types/cors": "^2.8.6",
     "@types/express-mysql-session": "^2.1.1",
+    "@types/http-errors": "^1.6.3",
     "@types/mocha": "^7.0.2",
     "@types/node": "^13.13.6",
     "@types/validator": "^13.0.0",
+    "cors": "^2.8.5",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
     "express-mysql-session": "^2.1.4",
     "express-session": "^1.17.1",
     "got": "^11.1.4",
+    "http-errors": "^1.7.3",
     "knex": "^0.21.1",
     "mocha": "^7.1.2",
     "mysql2": "^2.1.0",
@@ -33,7 +37,7 @@
   },
   "devDependencies": {
     "@prisma/cli": "^2.0.0-beta.8",
-    "twitch-mock-oauth-server": "^0.5.1",
+    "twitch-mock-oauth-server": "^0.6.0",
     "twitch-mock-webhook-hub": "^0.3.8"
   }
 }
