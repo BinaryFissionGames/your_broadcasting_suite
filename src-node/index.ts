@@ -70,7 +70,7 @@ webhookManager.on('error', (e) => {
     console.log(e)
 });
 
-setupRoutes(app, webhookManager);
+setupRoutes(app);
 
 let server: http.Server;
 let httpsServer: https.Server;
@@ -116,7 +116,10 @@ async function startup(){
             logErrors: true
         });
 
-        await addClient(process.env.CLIENT_ID, process.env.CLIENT_SECRET);
+        try {
+            //This'll fail if we try to create the same client again, so for now, we'll ignore that error.
+            await addClient(process.env.CLIENT_ID, process.env.CLIENT_SECRET);
+        }catch (e) {}
 
         await setUpMockWebhookServer({
             hub_url: process.env.MOCK_HUB_URL,

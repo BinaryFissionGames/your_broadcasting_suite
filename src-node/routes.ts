@@ -20,7 +20,7 @@ function setupRoutes(app: Application) {
     //Verifies if the caller is logged in or not
     //Possibly returns some user data (TBD)
     //TODO Seperate into logic + route
-    app.get('/auth/verifyLoggedIn', function (req, res) {
+    app.get('/auth/verifyLoggedIn', function (req, res, next) {
         let userLoggedIn = false;
         //TODO: Assert that token exists attached to user; If not, send that the user needs to re-auth
         if (req.session.userId) {
@@ -40,6 +40,16 @@ function setupRoutes(app: Application) {
         });
 
         res.end();
+    });
+
+    app.get('/auth/logout', function (req, res, next) {
+        req.session.destroy((e) => {
+            if(e){
+                //TODO: Set up error handling
+                next(e);
+            }
+            res.end();
+        });
     });
 }
 
