@@ -2,6 +2,7 @@ import {Application} from "express";
 import express = require("express");
 import {prisma} from "./model/prisma";
 import * as cors from 'cors'
+import {LogoutResponse, VerifyLoggedInResponse} from "twitch_broadcasting_suite_shared/dist";
 
 function setupRoutes(app: Application) {
     //Set up CORS
@@ -20,7 +21,7 @@ function setupRoutes(app: Application) {
     //Verifies if the caller is logged in or not
     //Possibly returns some user data (TBD)
     //TODO Seperate into logic + route
-    app.get('/auth/verifyLoggedIn', async function (req, res, next) {
+    app.get('/api/auth/verifyLoggedIn', async function (req, res, next) {
         let userLoggedIn = false;
         //TODO: Assert that token exists attached to user; If not, send that the user needs to re-auth
         if (req.session.userId) {
@@ -35,24 +36,36 @@ function setupRoutes(app: Application) {
             }
         }
 
-        res.send({
+        let response: VerifyLoggedInResponse = {
+            state: {
+                needsReauth: false,
+                error: false,
+            },
             loggedIn: userLoggedIn
-        });
+        };
 
+        res.send(response);
         res.end();
     });
 
-    app.get('/auth/logout', function (req, res, next) {
+    app.get('/api/auth/logout', function (req, res, next) {
         req.session.destroy((e) => {
             if(e){
                 //TODO: Set up error handling
                 next(e);
             }
+            let response: LogoutResponse = {
+              state: {
+                  needsReauth: false,
+                  error: false
+              }
+            };
+            res.send(response);
             res.end();
         });
     });
 
-    app.use('/require_user_auth', async function(req, res, next) {
+    app.use('/api/current_user', async function(req, res, next) {
         if (req.session.userId) {
             let user = await prisma.user.findOne({
                 where: {
@@ -63,10 +76,10 @@ function setupRoutes(app: Application) {
                 return next();
             }
         }
-        return next(new Error('No authentication found! Relogin!'))
+        return next(new Error('No authentication found! Relogin!'));
     });
 
-    app.get('/require_user_auth/queue/all', async function (req, res, next) {
+    app.get('/api/current_user/queue/all', async function (req, res, next) {
 
     });
 }
