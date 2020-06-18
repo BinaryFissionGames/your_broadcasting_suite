@@ -158,17 +158,17 @@ process.on('SIGINT', async () => {
     }
 
     try {
-        await prisma.disconnect();
+        await webhookManager.destroy();
     } catch (e) {
-        console.log("Error while shutting down database connection");
+        console.log("Error while destroying webhook manager");
         console.log(e);
         exitCode = 1;
     }
 
     try {
-        await webhookManager.destroy();
+        await prisma.disconnect();
     } catch (e) {
-        console.log("Error while destroying webhook manager");
+        console.log("Error while shutting down database connection");
         console.log(e);
         exitCode = 1;
     }
