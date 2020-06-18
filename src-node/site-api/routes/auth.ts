@@ -1,13 +1,18 @@
 import {Application} from "express";
 import {prisma} from "../../model/prisma";
-import {LogoutResponse, VerifyLoggedInResponse} from "twitch_broadcasting_suite_shared/dist";
+import {
+    LogoutResponse,
+    VerifyLoggedInResponse,
+    API_PATH_PREFIX,
+    API_PATH_LOG_OUT, API_PATH_VERIFY_LOGGED_IN
+} from "twitch_broadcasting_suite_shared/dist";
 
 function addAuthRoutes(app: Application) {
     //Auth endpoints
     //Verifies if the caller is logged in or not
     //Possibly returns some user data (TBD)
     //TODO Seperate into logic + route
-    app.get('/api/auth/verifyLoggedIn', async function (req, res, next) {
+    app.get(API_PATH_PREFIX + API_PATH_VERIFY_LOGGED_IN, async function (req, res, next) {
         let userLoggedIn = false;
         //TODO: Assert that token exists attached to user; If not, send that the user needs to re-auth
         if (req.session.userId) {
@@ -34,7 +39,7 @@ function addAuthRoutes(app: Application) {
         res.end();
     });
 
-    app.get('/api/auth/logout', function (req, res, next) {
+    app.get(API_PATH_PREFIX + API_PATH_LOG_OUT, function (req, res, next) {
         req.session.destroy((e) => {
             if(e){
                 //TODO: Set up error handling

@@ -1,8 +1,9 @@
 import {Application} from "express";
 import {prisma} from "../../model/prisma";
+import {API_PATH_GET_QUEUE_ITEMS, API_PATH_PREFIX} from "twitch_broadcasting_suite_shared/dist";
 
 function addUserRoutes(app: Application) {
-    app.use('/api/current_user', async function (req, res, next) {
+    app.use(API_PATH_PREFIX + '/current_user', async function (req, res, next) {
         if (req.session.userId) {
             let user = await prisma.user.findOne({
                 where: {
@@ -16,7 +17,7 @@ function addUserRoutes(app: Application) {
         return next(new Error('No authentication found! Relogin!'));
     });
 
-    app.get('/api/current_user/queue/all', async function (req, res, next) {
+    app.get(API_PATH_PREFIX + API_PATH_GET_QUEUE_ITEMS, async function (req, res, next) {
 
     });
 }
