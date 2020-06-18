@@ -1,8 +1,9 @@
 {
   "name": "binaryfissiongames-twitch-broadcasting-suite",
   "version": "0.0.1",
-  "description": "",
+  "description": "Backend API server for my twitch broadcasting suite",
   "main": "build-node/index.js",
+  "private": true,
   "scripts": {
     "build": "npx prisma generate && tsc",
     "build-test": "npx prisma generate && tsc --project test.tsconfig.json",

@@ -20,11 +20,11 @@ function setupRoutes(app: Application) {
     //Verifies if the caller is logged in or not
     //Possibly returns some user data (TBD)
     //TODO Seperate into logic + route
-    app.get('/auth/verifyLoggedIn', function (req, res, next) {
+    app.get('/auth/verifyLoggedIn', async function (req, res, next) {
         let userLoggedIn = false;
         //TODO: Assert that token exists attached to user; If not, send that the user needs to re-auth
         if (req.session.userId) {
-            let user = prisma.user.findOne({
+            let user = await prisma.user.findOne({
                 where: {
                     id: req.session.userId
                 }
@@ -50,6 +50,24 @@ function setupRoutes(app: Application) {
             }
             res.end();
         });
+    });
+
+    app.use('/require_user_auth', async function(req, res, next) {
+        if (req.session.userId) {
+            let user = await prisma.user.findOne({
+                where: {
+                    id: req.session.userId
+                }
+            });
+            if(user){
+                return next();
+            }
+        }
+        return next(new Error('No authentication found! Relogin!'))
+    });
+
+    app.get('/require_user_auth/queue/all', async function (req, res, next) {
+
     });
 }
 
