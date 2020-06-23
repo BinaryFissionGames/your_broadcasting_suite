@@ -18,6 +18,7 @@ model User {
     createdAt DateTime @default(now())
     webhook Webhook[]
     token Token?
+    queues Queue[]
 }
 
 model Token {
@@ -42,5 +43,28 @@ model Webhook {
     subscriptionEnd DateTime?
     secret String
     leaseSeconds Int
+    createdAt DateTime @default(now())
+}
+
+model Queue {
+    id Int @id
+    queueName String
+    userId Int
+    user User @relation(fields: [userId], references: [id])
+    items QueueItem[]
+    createdAt DateTime @default(now())
+}
+
+model QueueItem {
+    id Int @id
+    queueId Int
+    queue Queue @relation(fields: [queueId], references: [id])
+    type Int
+    description String
+    done Boolean
+    iconUrl String?
+    iconFile String?
+    estimatedDurationMs String?
+    extraData Json?
     createdAt DateTime @default(now())
 }
