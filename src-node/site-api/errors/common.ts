@@ -14,3 +14,11 @@ export class GenericError extends Error {
         this.needsReauth = false;
     }
 }
+
+export class InvalidPayloadError extends GenericError {
+    constructor(type: string, endpoint: string) {
+        super(`Payload does not match type ${type} for endpoint ${endpoint}.`);
+        //This should not happen under normal operation, so there is no real "user facing error"/
+        //The default "internal server error" should suffice for now.
+    }
+}

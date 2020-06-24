@@ -33,6 +33,7 @@ function addApiRoutes(app: Application) {
 
             res.status(err.statusCode);
             res.send(JSON.stringify(errResp));
+            res.end();
         } else {
             let newId = crypto.randomBytes(4).toString('hex');
             console.error(newId, ' >> ', err);
@@ -47,6 +48,7 @@ function addApiRoutes(app: Application) {
 
             res.status(500);
             res.send(JSON.stringify(errResp));
+            res.end();
         }
     });
 }

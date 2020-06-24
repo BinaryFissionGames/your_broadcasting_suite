@@ -64,7 +64,7 @@ model QueueItem {
     done Boolean
     iconUrl String?
     iconFile String?
-    estimatedDurationMs String?
+    estimatedDurationMs Int?
     extraData Json?
     createdAt DateTime @default(now())
 }
