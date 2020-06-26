@@ -63,8 +63,57 @@ model QueueItem {
     description String
     done Boolean
     iconUrl String?
-    iconFile String?
     estimatedDurationMs Int?
-    extraData Json?
+    followsNotifId Int?
+    followsNotification FollowsNotification? @relation(fields: [followsNotifId], references: [id])
+    subNotifId Int?
+    subNotification SubscriberNotification? @relation(fields: [subNotifId], references: [id])
+    raidNotifId Int?
+    raidNotification RaidNotification? @relation(fields: [raidNotifId], references: [id])
+    youtubeVideoId Int?
+    youtubeVideoNotification YoutubeVideo? @relation(fields: [youtubeVideoId], references: [id])
+    bitsNotifId Int?
+    bitsNotification BitsNotification? @relation(fields: [bitsNotifId], references: [id])
+    donationNotifId Int?
+    donationNotification DonationNotification? @relation(fields: [donationNotifId], references: [id])
     createdAt DateTime @default(now())
+}
+
+model FollowsNotification {
+    id Int @id
+    user String
+}
+
+model SubscriberNotification {
+    id Int @id
+    user String
+    streak Int
+    message String
+}
+
+model RaidNotification {
+    id Int @id
+    channel String
+    viewers Int
+}
+
+model YoutubeVideo {
+    id Int @id
+    videoId String
+    startTimeS Int
+    durationS Int
+}
+
+model BitsNotification {
+    id Int @id
+    user String
+    amount Int
+    message String?
+}
+
+model DonationNotification {
+    id Int @id
+    anonymous Boolean
+    user String
+    message String?
 }
