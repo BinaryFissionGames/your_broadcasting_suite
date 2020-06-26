@@ -5,6 +5,7 @@ import * as cors from "cors";
 import {GenericError} from "../errors/common";
 import {GenericResponse} from "twitch_broadcasting_suite_shared/dist";
 import * as crypto from 'crypto';
+import * as bodyParser from "body-parser";
 
 function addApiRoutes(app: Application) {
     //Set up CORS
@@ -12,6 +13,9 @@ function addApiRoutes(app: Application) {
         origin: process.env.CORS_ALLOW_ORIGINS.split(' '),
         credentials: true
     }));
+
+    //All data provided to the API is in JSON format.
+    app.use('/api', bodyParser.json());
 
     addAuthRoutes(app);
     addUserRoutes(app);
