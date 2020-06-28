@@ -38,7 +38,7 @@
     "twitch_broadcasting_suite_shared": "git+https://github.com/Denu8thell/twitch_broadcasting_suite_shared.git"
   },
   "devDependencies": {
-    "@prisma/cli": "^2.0.0-beta.8",
+    "@prisma/cli": "^2.1.3",
     "twitch-mock-oauth-server": "^0.6.0",
     "twitch-mock-webhook-hub": "^0.3.8"
   }

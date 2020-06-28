@@ -4,11 +4,30 @@ import {
     API_PATH_GET_QUEUE_ITEMS_FULL_PATH,
     API_PATH_PREFIX,
     API_PATH_CURRENT_USER_PREFIX,
-    isAllQueueItemsRequest, AllQueueItemsResponse
+    isAllQueueItemsRequest,
+    AllQueueItemsResponse,
+    API_PATH_ADD_TEST_FOLLOW_QUEUE_ITEM_FULL_PATH,
+    GenericResponse,
+    API_PATH_ADD_TEST_SUBSCRIBE_QUEUE_ITEM_FULL_PATH,
+    isAddSubscriptionQueueItemRequest,
+    API_PATH_ADD_TEST_RAID_QUEUE_ITEM_FULL_PATH,
+    isAddRaidQueueItemRequest,
+    API_PATH_ADD_TEST_YOUTUBE_QUEUE_ITEM_FULL_PATH,
+    isAddYoutubeQueueItemRequest,
+    API_PATH_ADD_TEST_BITS_QUEUE_ITEM_FULL_PATH,
+    isAddBitsQueueItemRequest,
+    API_PATH_ADD_TEST_DONATION_QUEUE_ITEM_FULL_PATH, isAddDonationQueueItemRequest
 } from "twitch_broadcasting_suite_shared/dist";
 import {NeedsReAuthError} from "../errors/user_errors";
-import {getAllQueueItemsForUser} from "../logic/queue";
+import {
+    createBitsNotification, createDonationNotification,
+    createFollowsNotification,
+    createRaidNotification,
+    createSubscriberNotification, createYoutubeVideoNotification,
+    getAllQueueItemsForUser
+} from "../logic/queue";
 import {InvalidPayloadError} from "../errors/common";
+import {isAddFollowQueueItemRequest} from "twitch_broadcasting_suite_shared/dist/types/api/queue";
 
 function addUserRoutes(app: Application) {
     app.use(API_PATH_PREFIX + API_PATH_CURRENT_USER_PREFIX, async function (req, res, next) {
@@ -46,6 +65,144 @@ function addUserRoutes(app: Application) {
                 res.end();
             } else {
                 throw new InvalidPayloadError('QueueItemsRequest', API_PATH_GET_QUEUE_ITEMS_FULL_PATH);
+            }
+        } catch (e) {
+            next(e);
+        }
+    });
+
+    app.post(API_PATH_ADD_TEST_FOLLOW_QUEUE_ITEM_FULL_PATH, async function (req, res, next) {
+        try {
+            if (isAddFollowQueueItemRequest(req.body)) {
+                await createFollowsNotification(req.body);
+
+                let resp: GenericResponse = {
+                    state: {
+                        needsReauth: false,
+                        error: false
+                    }
+                };
+
+                res.status(200);
+                res.send(JSON.stringify(resp));
+                res.end();
+            } else {
+                throw new InvalidPayloadError('AddFollowQueueItemRequest', API_PATH_ADD_TEST_FOLLOW_QUEUE_ITEM_FULL_PATH);
+            }
+        } catch (e) {
+            next(e);
+        }
+    });
+
+    app.post(API_PATH_ADD_TEST_SUBSCRIBE_QUEUE_ITEM_FULL_PATH, async function (req, res, next) {
+        try {
+            if (isAddSubscriptionQueueItemRequest(req.body)) {
+                await createSubscriberNotification(req.body);
+
+                let resp: GenericResponse = {
+                    state: {
+                        needsReauth: false,
+                        error: false
+                    }
+                };
+
+                res.status(200);
+                res.send(JSON.stringify(resp));
+                res.end();
+            } else {
+                throw new InvalidPayloadError('AddSubscriptionQueueItemRequest', API_PATH_ADD_TEST_SUBSCRIBE_QUEUE_ITEM_FULL_PATH);
+            }
+        } catch (e) {
+            next(e);
+        }
+    });
+
+    app.post(API_PATH_ADD_TEST_RAID_QUEUE_ITEM_FULL_PATH, async function (req, res, next) {
+        try {
+            if (isAddRaidQueueItemRequest(req.body)) {
+                await createRaidNotification(req.body);
+
+                let resp: GenericResponse = {
+                    state: {
+                        needsReauth: false,
+                        error: false
+                    }
+                };
+
+                res.status(200);
+                res.send(JSON.stringify(resp));
+                res.end();
+            } else {
+                throw new InvalidPayloadError('AddRaidQueueItemRequest', API_PATH_ADD_TEST_RAID_QUEUE_ITEM_FULL_PATH);
+            }
+        } catch (e) {
+            next(e);
+        }
+    });
+
+    app.post(API_PATH_ADD_TEST_YOUTUBE_QUEUE_ITEM_FULL_PATH, async function (req, res, next) {
+        try {
+            if (isAddYoutubeQueueItemRequest(req.body)) {
+                await createYoutubeVideoNotification(req.body);
+
+                let resp: GenericResponse = {
+                    state: {
+                        needsReauth: false,
+                        error: false
+                    }
+                };
+
+                res.status(200);
+                res.send(JSON.stringify(resp));
+                res.end();
+            } else {
+                throw new InvalidPayloadError('AddYoutubeQueueItemRequest', API_PATH_ADD_TEST_YOUTUBE_QUEUE_ITEM_FULL_PATH);
+            }
+        } catch (e) {
+            next(e);
+        }
+    });
+
+    app.post(API_PATH_ADD_TEST_BITS_QUEUE_ITEM_FULL_PATH, async function (req, res, next) {
+        try {
+            if (isAddBitsQueueItemRequest(req.body)) {
+                await createBitsNotification(req.body);
+
+                let resp: GenericResponse = {
+                    state: {
+                        needsReauth: false,
+                        error: false
+                    }
+                };
+
+                res.status(200);
+                res.send(JSON.stringify(resp));
+                res.end();
+            } else {
+                throw new InvalidPayloadError('AddBitsQueueItemRequest', API_PATH_ADD_TEST_BITS_QUEUE_ITEM_FULL_PATH);
+            }
+        } catch (e) {
+            next(e);
+        }
+    });
+
+    app.post(API_PATH_ADD_TEST_DONATION_QUEUE_ITEM_FULL_PATH, async function (req, res, next) {
+        try {
+            if (isAddDonationQueueItemRequest(req.body)) {
+                await createDonationNotification(req.body);
+
+                let resp: GenericResponse = {
+                    state: {
+                        needsReauth: false,
+                        error: false
+                    }
+                };
+
+                res.status(200);
+                res.send(JSON.stringify(resp));
+                res.end();
+            } else {
+                throw new InvalidPayloadError('AddDonationQueueItemRequest', API_PATH_ADD_TEST_DONATION_QUEUE_ITEM_FULL_PATH);
             }
         } catch (e) {
             next(e);
