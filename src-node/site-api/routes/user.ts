@@ -18,13 +18,13 @@ import {
     isAddBitsQueueItemRequest,
     API_PATH_ADD_TEST_DONATION_QUEUE_ITEM_FULL_PATH, isAddDonationQueueItemRequest
 } from "twitch_broadcasting_suite_shared/dist";
-import {NeedsReAuthError} from "../errors/user_errors";
+import {NeedsReAuthError, QueueNotFound} from "../errors/user_errors";
 import {
     createBitsNotification, createDonationNotification,
     createFollowsNotification,
     createRaidNotification,
     createSubscriberNotification, createYoutubeVideoNotification,
-    getAllQueueItemsForUser
+    getAllQueueItemsForUser, queueBelongsToUser
 } from "../logic/queue";
 import {InvalidPayloadError} from "../errors/common";
 import {isAddFollowQueueItemRequest} from "twitch_broadcasting_suite_shared/dist/types/api/queue";
@@ -51,6 +51,10 @@ function addUserRoutes(app: Application) {
     app.post(API_PATH_GET_QUEUE_ITEMS_FULL_PATH, async function (req, res, next) {
         try {
             if (isAllQueueItemsRequest(req.body)) {
+                if(!(await queueBelongsToUser(req.session.userId, req.body.queueId))){
+                    throw new QueueNotFound();
+                }
+
                 let items = await getAllQueueItemsForUser(req.session.userId, req.body.queueId);
                 let response: AllQueueItemsResponse = {
                     state: {
@@ -74,6 +78,10 @@ function addUserRoutes(app: Application) {
     app.post(API_PATH_ADD_TEST_FOLLOW_QUEUE_ITEM_FULL_PATH, async function (req, res, next) {
         try {
             if (isAddFollowQueueItemRequest(req.body)) {
+                if(!(await queueBelongsToUser(req.session.userId, req.body.queueId))){
+                    throw new QueueNotFound();
+                }
+
                 await createFollowsNotification(req.body);
 
                 let resp: GenericResponse = {
@@ -97,6 +105,10 @@ function addUserRoutes(app: Application) {
     app.post(API_PATH_ADD_TEST_SUBSCRIBE_QUEUE_ITEM_FULL_PATH, async function (req, res, next) {
         try {
             if (isAddSubscriptionQueueItemRequest(req.body)) {
+                if(!(await queueBelongsToUser(req.session.userId, req.body.queueId))){
+                    throw new QueueNotFound();
+                }
+
                 await createSubscriberNotification(req.body);
 
                 let resp: GenericResponse = {
@@ -120,6 +132,10 @@ function addUserRoutes(app: Application) {
     app.post(API_PATH_ADD_TEST_RAID_QUEUE_ITEM_FULL_PATH, async function (req, res, next) {
         try {
             if (isAddRaidQueueItemRequest(req.body)) {
+                if(!(await queueBelongsToUser(req.session.userId, req.body.queueId))){
+                    throw new QueueNotFound();
+                }
+
                 await createRaidNotification(req.body);
 
                 let resp: GenericResponse = {
@@ -143,6 +159,11 @@ function addUserRoutes(app: Application) {
     app.post(API_PATH_ADD_TEST_YOUTUBE_QUEUE_ITEM_FULL_PATH, async function (req, res, next) {
         try {
             if (isAddYoutubeQueueItemRequest(req.body)) {
+
+                if(!(await queueBelongsToUser(req.session.userId, req.body.queueId))){
+                    throw new QueueNotFound();
+                }
+
                 await createYoutubeVideoNotification(req.body);
 
                 let resp: GenericResponse = {
@@ -166,6 +187,10 @@ function addUserRoutes(app: Application) {
     app.post(API_PATH_ADD_TEST_BITS_QUEUE_ITEM_FULL_PATH, async function (req, res, next) {
         try {
             if (isAddBitsQueueItemRequest(req.body)) {
+                if(!(await queueBelongsToUser(req.session.userId, req.body.queueId))){
+                    throw new QueueNotFound();
+                }
+
                 await createBitsNotification(req.body);
 
                 let resp: GenericResponse = {
@@ -189,6 +214,10 @@ function addUserRoutes(app: Application) {
     app.post(API_PATH_ADD_TEST_DONATION_QUEUE_ITEM_FULL_PATH, async function (req, res, next) {
         try {
             if (isAddDonationQueueItemRequest(req.body)) {
+                if(!(await queueBelongsToUser(req.session.userId, req.body.queueId))){
+                    throw new QueueNotFound();
+                }
+
                 await createDonationNotification(req.body);
 
                 let resp: GenericResponse = {
