@@ -1,6 +1,6 @@
 //Initializes the user in an IDEMPOTENT fashion; That means that this function can/may be run multiple times,
 //And should not error.
-import {prisma} from "../../model/prisma";
+import {prisma} from '../../model/prisma';
 
 export async function initUserIdempotent(userId: number) {
     //Create default queue
@@ -8,17 +8,17 @@ export async function initUserIdempotent(userId: number) {
         where: {
             userId_queueName: {
                 userId,
-                queueName: 'Default'
-            }
+                queueName: 'Default',
+            },
         },
         update: {},
         create: {
             queueName: 'Default',
             user: {
                 connect: {
-                    id: userId
-                }
-            }
-        }
+                    id: userId,
+                },
+            },
+        },
     });
 }

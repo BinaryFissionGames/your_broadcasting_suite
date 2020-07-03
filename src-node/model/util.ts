@@ -8,24 +8,24 @@ type ConnDetails = {
     user: string;
     password: string;
     database: string;
-}
+};
 
-function parseMySqlConnString(connString: string) : ConnDetails {
-    let match = connString.match(connStringRegex);
-    if(match) {
+function parseMySqlConnString(connString: string): ConnDetails {
+    const match = connString.match(connStringRegex);
+    if (match) {
         return {
             host: match[3],
             port: Number.parseInt(match[4]),
             user: match[1],
-            password:match[2],
-            database:match[5]
-        }
+            password: match[2],
+            database: match[5],
+        };
     }
 
     throw new Error('Cannot parse connection string ' + connString);
 }
 
-function parseScopesArray(scopes: string) : string[] {
+function parseScopesArray(scopes: string): string[] {
     let scopeArray: string[];
     if (scopes && scopes !== '') {
         scopeArray = scopes.split(' ');
@@ -35,11 +35,7 @@ function parseScopesArray(scopes: string) : string[] {
         scopeArray = [];
     }
 
-    return scopeArray
+    return scopeArray;
 }
 
-export {
-    parseMySqlConnString,
-    ConnDetails,
-    parseScopesArray
-}
+export {parseMySqlConnString, ConnDetails, parseScopesArray};

@@ -1,5 +1,5 @@
 import * as crypto from 'crypto';
-import {hasAndIsOfType} from "twitch_broadcasting_suite_shared/dist/types/helper";
+import {hasAndIsOfType} from 'twitch_broadcasting_suite_shared/dist/types/helper';
 
 export class GenericError extends Error {
     public userFacingMessage: string;
@@ -9,7 +9,8 @@ export class GenericError extends Error {
 
     constructor(msg: string) {
         super(msg);
-        this.userFacingMessage = 'An internal server error occurred. If this error persists, please contact us by sending an email to support@binaryfissiongames.com!';
+        this.userFacingMessage =
+            'An internal server error occurred. If this error persists, please contact us by sending an email to support@binaryfissiongames.com!';
         this.errorId = crypto.randomBytes(4).toString('hex'); // Random 8 bytes to identify this error.
         this.statusCode = 500;
         this.needsReauth = false;
@@ -25,9 +26,12 @@ export class InvalidPayloadError extends GenericError {
 }
 
 export function isGenericError(obj: any): obj is GenericError {
-    return typeof obj === 'object' && obj !== null &&
-        hasAndIsOfType(obj, "userFacingMessage", 'string') &&
-        hasAndIsOfType(obj, "errorId", 'string') &&
-        hasAndIsOfType(obj, "statusCode", 'number') &&
-        hasAndIsOfType(obj, "needsReauth", 'boolean');
+    return (
+        typeof obj === 'object' &&
+        obj !== null &&
+        hasAndIsOfType(obj, 'userFacingMessage', 'string') &&
+        hasAndIsOfType(obj, 'errorId', 'string') &&
+        hasAndIsOfType(obj, 'statusCode', 'number') &&
+        hasAndIsOfType(obj, 'needsReauth', 'boolean')
+    );
 }

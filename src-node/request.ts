@@ -1,25 +1,25 @@
-import * as oauth from "twitch-oauth-authorization-code-express"
-import {Token} from '@prisma/client'
-import {parseScopesArray} from "./model/util";
+import * as oauth from 'twitch-oauth-authorization-code-express';
+import {Token} from '@prisma/client';
+import {parseScopesArray} from './model/util';
 import got from 'got';
-import {TokenInfo} from "twitch-oauth-authorization-code-express";
-import {prisma} from "./model/prisma";
+import {TokenInfo} from 'twitch-oauth-authorization-code-express';
+import {prisma} from './model/prisma';
 
 async function getOAuthToken(userId?: string): Promise<string> {
     if (userId) {
-        let user = await prisma.user.findOne({
+        const user = await prisma.user.findOne({
             where: {twitchId: userId},
             include: {
                 token: {
                     select: {
-                        oAuthToken: true
-                    }
-                }
-            }
+                        oAuthToken: true,
+                    },
+                },
+            },
         });
         return user.token.oAuthToken;
     } else {
-        let token = await prisma.token.findOne({where: {ownerId: null}, select: {oAuthToken: true}});
+        const token = await prisma.token.findOne({where: {ownerId: null}, select: {oAuthToken: true}});
         if (token) {
             return token.oAuthToken;
         }
@@ -29,29 +29,34 @@ async function getOAuthToken(userId?: string): Promise<string> {
 }
 
 async function refreshToken(oAuthToken: string): Promise<string> {
-    let token = await prisma.token.findOne({where: {oAuthToken: oAuthToken}});
+    const token = await prisma.token.findOne({where: {oAuthToken: oAuthToken}});
     if (token) {
-        let scopes = parseScopesArray(token.scopes);
+        const scopes = parseScopesArray(token.scopes);
         if (!token.ownerId) {
             await prisma.token.delete({
                 where: {
-                    id: token.id
-                }
+                    id: token.id,
+                },
             });
             return (await requestAppToken(scopes)).oAuthToken;
         } else {
-            let info = await oauth.refreshToken(token.refreshToken, process.env.CLIENT_ID, process.env.CLIENT_SECRET, scopes);
+            const info = await oauth.refreshToken(
+                token.refreshToken,
+                process.env.CLIENT_ID,
+                process.env.CLIENT_SECRET,
+                scopes
+            );
             //TODO: Update refresh token endpoint to return token expiry and stuff
             prisma.token.update({
                 where: {
-                    id: token.id
+                    id: token.id,
                 },
                 data: {
                     oAuthToken: info.access_token,
                     refreshToken: info.refresh_token,
                     tokenExpiry: info.expiry_date,
-                    scopes: info.scopes.join(' ')
-                }
+                    scopes: info.scopes.join(' '),
+                },
             });
             return info.access_token;
         }
@@ -61,32 +66,29 @@ async function refreshToken(oAuthToken: string): Promise<string> {
 }
 
 async function requestAppToken(scopes: string[]): Promise<Token> {
-    let reqUrl = new URL('https://id.twitch.tv/oauth2/token');
+    const reqUrl = new URL('https://id.twitch.tv/oauth2/token');
     reqUrl.searchParams.set('client_id', process.env.CLIENT_ID);
     reqUrl.searchParams.set('client_secret', process.env.CLIENT_SECRET);
     reqUrl.searchParams.set('grant_type', 'client_credentials');
-    if(scopes && scopes.length >= 1) {
+    if (scopes && scopes.length >= 1) {
         reqUrl.searchParams.set('scope', scopes.join(' '));
     }
 
-    let response = await got.post(reqUrl.href);
+    const response = await got.post(reqUrl.href);
 
-    if(Math.floor(response.statusCode / 100) !== 2){
+    if (Math.floor(response.statusCode / 100) !== 2) {
         throw new Error('Bad status code when retrieving app access token!');
     }
 
-    let token_info: TokenInfo = JSON.parse(response.body);
+    const token_info: TokenInfo = JSON.parse(response.body);
 
     return await prisma.token.create({
         data: {
             oAuthToken: token_info.access_token,
             tokenExpiry: token_info.expiry_date,
-            scopes: token_info.scopes.join(' ')
-        }
+            scopes: token_info.scopes.join(' '),
+        },
     });
 }
 
-export {
-    getOAuthToken,
-    refreshToken
-}
+export {getOAuthToken, refreshToken};

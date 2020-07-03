@@ -5,7 +5,8 @@ exports.up = function (knex) {
             table.string('twitchUserName').notNullable();
             table.string('twitchId').unique().notNullable();
             table.dateTime('createdAt').defaultTo(knex.raw('NOW()')).notNullable();
-        }).createTable('Token', function (table) {
+        })
+        .createTable('Token', function (table) {
             table.increments('id');
             table.integer('ownerId', 10).unsigned().references('id').inTable('User').onDelete('CASCADE');
             table.string('oAuthToken', 255).unique().notNullable();
@@ -13,7 +14,8 @@ exports.up = function (knex) {
             table.dateTime('tokenExpiry').notNullable();
             table.string('scopes').notNullable();
             table.dateTime('createdAt').defaultTo(knex.raw('NOW()'));
-        }).createTable('Webhook', function (table) {
+        })
+        .createTable('Webhook', function (table) {
             table.increments('id');
             table.integer('type').notNullable();
             table.integer('ownerId', 10).unsigned().references('id').inTable('User');

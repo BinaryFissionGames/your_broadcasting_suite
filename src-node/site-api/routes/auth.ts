@@ -1,12 +1,12 @@
-import {Application} from "express";
-import {prisma} from "../../model/prisma";
+import {Application} from 'express';
+import {prisma} from '../../model/prisma';
 import {
     LogoutResponse,
     VerifyLoggedInResponse,
     API_PATH_VERIFY_LOGGED_IN_FULL_PATH,
-    API_PATH_LOG_OUT_FULL_PATH
-} from "twitch_broadcasting_suite_shared/dist";
-import {initUserIdempotent} from "../logic/user";
+    API_PATH_LOG_OUT_FULL_PATH,
+} from 'twitch_broadcasting_suite_shared/dist';
+import {initUserIdempotent} from '../logic/user';
 
 function addAuthRoutes(app: Application) {
     //Auth endpoints
@@ -17,10 +17,10 @@ function addAuthRoutes(app: Application) {
         try {
             let userLoggedIn = false;
             if (req.session.userId) {
-                let user = await prisma.user.findOne({
+                const user = await prisma.user.findOne({
                     where: {
-                        id: req.session.userId
-                    }
+                        id: req.session.userId,
+                    },
                 });
 
                 if (user) {
@@ -29,12 +29,12 @@ function addAuthRoutes(app: Application) {
                 }
             }
 
-            let response: VerifyLoggedInResponse = {
+            const response: VerifyLoggedInResponse = {
                 state: {
                     needsReauth: false,
                     error: false,
                 },
-                loggedIn: userLoggedIn
+                loggedIn: userLoggedIn,
             };
 
             res.send(response);
@@ -50,11 +50,11 @@ function addAuthRoutes(app: Application) {
                 if (e) {
                     next(e);
                 }
-                let response: LogoutResponse = {
+                const response: LogoutResponse = {
                     state: {
                         needsReauth: false,
-                        error: false
-                    }
+                        error: false,
+                    },
                 };
                 res.send(response);
                 res.end();
@@ -65,6 +65,4 @@ function addAuthRoutes(app: Application) {
     });
 }
 
-export {
-    addAuthRoutes
-}
+export {addAuthRoutes};

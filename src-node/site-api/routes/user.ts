@@ -1,5 +1,5 @@
-import {Application} from "express";
-import {prisma} from "../../model/prisma";
+import {Application} from 'express';
+import {prisma} from '../../model/prisma';
 import {
     API_PATH_GET_QUEUE_ITEMS_FULL_PATH,
     API_PATH_PREFIX,
@@ -18,28 +18,32 @@ import {
     isAddBitsQueueItemRequest,
     API_PATH_ADD_TEST_DONATION_QUEUE_ITEM_FULL_PATH,
     isAddDonationQueueItemRequest,
-    API_PATH_GET_QUEUE_ITEMS,
-    GetAllQueuesResponse, API_PATH_GET_QUEUES_FULL_PATH
-} from "twitch_broadcasting_suite_shared/dist";
-import {NeedsReAuthError, QueueNotFound} from "../errors/user_errors";
+    GetAllQueuesResponse,
+    API_PATH_GET_QUEUES_FULL_PATH,
+} from 'twitch_broadcasting_suite_shared/dist';
+import {NeedsReAuthError, QueueNotFound} from '../errors/user_errors';
 import {
-    createBitsNotification, createDonationNotification,
+    createBitsNotification,
+    createDonationNotification,
     createFollowsNotification,
     createRaidNotification,
-    createSubscriberNotification, createYoutubeVideoNotification,
-    getAllQueueItemsForUser, getAllQueuesForUser, queueBelongsToUser
-} from "../logic/queue";
-import {InvalidPayloadError} from "../errors/common";
-import {isAddFollowQueueItemRequest} from "twitch_broadcasting_suite_shared/dist/types/api/queue";
+    createSubscriberNotification,
+    createYoutubeVideoNotification,
+    getAllQueueItemsForUser,
+    getAllQueuesForUser,
+    queueBelongsToUser,
+} from '../logic/queue';
+import {InvalidPayloadError} from '../errors/common';
+import {isAddFollowQueueItemRequest} from 'twitch_broadcasting_suite_shared/dist/types/api/queue';
 
 function addUserRoutes(app: Application) {
     app.use(API_PATH_PREFIX + API_PATH_CURRENT_USER_PREFIX, async function (req, res, next) {
         try {
             if (req.session.userId) {
-                let user = await prisma.user.findOne({
+                const user = await prisma.user.findOne({
                     where: {
-                        id: req.session.userId
-                    }
+                        id: req.session.userId,
+                    },
                 });
                 if (user) {
                     return next();
@@ -51,21 +55,21 @@ function addUserRoutes(app: Application) {
         }
     });
 
-    app.get(API_PATH_GET_QUEUES_FULL_PATH, async function(req, res, next){
+    app.get(API_PATH_GET_QUEUES_FULL_PATH, async function (req, res, next) {
         try {
-            let queues = await getAllQueuesForUser(req.session.userId);
-            let response: GetAllQueuesResponse = {
+            const queues = await getAllQueuesForUser(req.session.userId);
+            const response: GetAllQueuesResponse = {
                 state: {
                     needsReauth: false,
-                    error: false
+                    error: false,
                 },
-                queues
+                queues,
             };
 
             res.status(200);
             res.send(JSON.stringify(response));
             res.end();
-        }catch (e) {
+        } catch (e) {
             next(e);
         }
     });
@@ -73,17 +77,17 @@ function addUserRoutes(app: Application) {
     app.post(API_PATH_GET_QUEUE_ITEMS_FULL_PATH, async function (req, res, next) {
         try {
             if (isAllQueueItemsRequest(req.body)) {
-                if(!(await queueBelongsToUser(req.session.userId, req.body.queueId))){
+                if (!(await queueBelongsToUser(req.session.userId, req.body.queueId))) {
                     throw new QueueNotFound();
                 }
 
-                let items = await getAllQueueItemsForUser(req.session.userId, req.body.queueId);
-                let response: AllQueueItemsResponse = {
+                const items = await getAllQueueItemsForUser(req.session.userId, req.body.queueId);
+                const response: AllQueueItemsResponse = {
                     state: {
                         needsReauth: false,
-                        error: false
+                        error: false,
                     },
-                    items
+                    items,
                 };
 
                 res.status(200);
@@ -100,24 +104,27 @@ function addUserRoutes(app: Application) {
     app.post(API_PATH_ADD_TEST_FOLLOW_QUEUE_ITEM_FULL_PATH, async function (req, res, next) {
         try {
             if (isAddFollowQueueItemRequest(req.body)) {
-                if(!(await queueBelongsToUser(req.session.userId, req.body.queueId))){
+                if (!(await queueBelongsToUser(req.session.userId, req.body.queueId))) {
                     throw new QueueNotFound();
                 }
 
                 await createFollowsNotification(req.body);
 
-                let resp: GenericResponse = {
+                const resp: GenericResponse = {
                     state: {
                         needsReauth: false,
-                        error: false
-                    }
+                        error: false,
+                    },
                 };
 
                 res.status(200);
                 res.send(JSON.stringify(resp));
                 res.end();
             } else {
-                throw new InvalidPayloadError('AddFollowQueueItemRequest', API_PATH_ADD_TEST_FOLLOW_QUEUE_ITEM_FULL_PATH);
+                throw new InvalidPayloadError(
+                    'AddFollowQueueItemRequest',
+                    API_PATH_ADD_TEST_FOLLOW_QUEUE_ITEM_FULL_PATH
+                );
             }
         } catch (e) {
             next(e);
@@ -127,24 +134,27 @@ function addUserRoutes(app: Application) {
     app.post(API_PATH_ADD_TEST_SUBSCRIBE_QUEUE_ITEM_FULL_PATH, async function (req, res, next) {
         try {
             if (isAddSubscriptionQueueItemRequest(req.body)) {
-                if(!(await queueBelongsToUser(req.session.userId, req.body.queueId))){
+                if (!(await queueBelongsToUser(req.session.userId, req.body.queueId))) {
                     throw new QueueNotFound();
                 }
 
                 await createSubscriberNotification(req.body);
 
-                let resp: GenericResponse = {
+                const resp: GenericResponse = {
                     state: {
                         needsReauth: false,
-                        error: false
-                    }
+                        error: false,
+                    },
                 };
 
                 res.status(200);
                 res.send(JSON.stringify(resp));
                 res.end();
             } else {
-                throw new InvalidPayloadError('AddSubscriptionQueueItemRequest', API_PATH_ADD_TEST_SUBSCRIBE_QUEUE_ITEM_FULL_PATH);
+                throw new InvalidPayloadError(
+                    'AddSubscriptionQueueItemRequest',
+                    API_PATH_ADD_TEST_SUBSCRIBE_QUEUE_ITEM_FULL_PATH
+                );
             }
         } catch (e) {
             next(e);
@@ -154,17 +164,17 @@ function addUserRoutes(app: Application) {
     app.post(API_PATH_ADD_TEST_RAID_QUEUE_ITEM_FULL_PATH, async function (req, res, next) {
         try {
             if (isAddRaidQueueItemRequest(req.body)) {
-                if(!(await queueBelongsToUser(req.session.userId, req.body.queueId))){
+                if (!(await queueBelongsToUser(req.session.userId, req.body.queueId))) {
                     throw new QueueNotFound();
                 }
 
                 await createRaidNotification(req.body);
 
-                let resp: GenericResponse = {
+                const resp: GenericResponse = {
                     state: {
                         needsReauth: false,
-                        error: false
-                    }
+                        error: false,
+                    },
                 };
 
                 res.status(200);
@@ -181,25 +191,27 @@ function addUserRoutes(app: Application) {
     app.post(API_PATH_ADD_TEST_YOUTUBE_QUEUE_ITEM_FULL_PATH, async function (req, res, next) {
         try {
             if (isAddYoutubeQueueItemRequest(req.body)) {
-
-                if(!(await queueBelongsToUser(req.session.userId, req.body.queueId))){
+                if (!(await queueBelongsToUser(req.session.userId, req.body.queueId))) {
                     throw new QueueNotFound();
                 }
 
                 await createYoutubeVideoNotification(req.body);
 
-                let resp: GenericResponse = {
+                const resp: GenericResponse = {
                     state: {
                         needsReauth: false,
-                        error: false
-                    }
+                        error: false,
+                    },
                 };
 
                 res.status(200);
                 res.send(JSON.stringify(resp));
                 res.end();
             } else {
-                throw new InvalidPayloadError('AddYoutubeQueueItemRequest', API_PATH_ADD_TEST_YOUTUBE_QUEUE_ITEM_FULL_PATH);
+                throw new InvalidPayloadError(
+                    'AddYoutubeQueueItemRequest',
+                    API_PATH_ADD_TEST_YOUTUBE_QUEUE_ITEM_FULL_PATH
+                );
             }
         } catch (e) {
             next(e);
@@ -209,17 +221,17 @@ function addUserRoutes(app: Application) {
     app.post(API_PATH_ADD_TEST_BITS_QUEUE_ITEM_FULL_PATH, async function (req, res, next) {
         try {
             if (isAddBitsQueueItemRequest(req.body)) {
-                if(!(await queueBelongsToUser(req.session.userId, req.body.queueId))){
+                if (!(await queueBelongsToUser(req.session.userId, req.body.queueId))) {
                     throw new QueueNotFound();
                 }
 
                 await createBitsNotification(req.body);
 
-                let resp: GenericResponse = {
+                const resp: GenericResponse = {
                     state: {
                         needsReauth: false,
-                        error: false
-                    }
+                        error: false,
+                    },
                 };
 
                 res.status(200);
@@ -236,24 +248,27 @@ function addUserRoutes(app: Application) {
     app.post(API_PATH_ADD_TEST_DONATION_QUEUE_ITEM_FULL_PATH, async function (req, res, next) {
         try {
             if (isAddDonationQueueItemRequest(req.body)) {
-                if(!(await queueBelongsToUser(req.session.userId, req.body.queueId))){
+                if (!(await queueBelongsToUser(req.session.userId, req.body.queueId))) {
                     throw new QueueNotFound();
                 }
 
                 await createDonationNotification(req.body);
 
-                let resp: GenericResponse = {
+                const resp: GenericResponse = {
                     state: {
                         needsReauth: false,
-                        error: false
-                    }
+                        error: false,
+                    },
                 };
 
                 res.status(200);
                 res.send(JSON.stringify(resp));
                 res.end();
             } else {
-                throw new InvalidPayloadError('AddDonationQueueItemRequest', API_PATH_ADD_TEST_DONATION_QUEUE_ITEM_FULL_PATH);
+                throw new InvalidPayloadError(
+                    'AddDonationQueueItemRequest',
+                    API_PATH_ADD_TEST_DONATION_QUEUE_ITEM_FULL_PATH
+                );
             }
         } catch (e) {
             next(e);
@@ -261,6 +276,4 @@ function addUserRoutes(app: Application) {
     });
 }
 
-export {
-    addUserRoutes
-}
+export {addUserRoutes};

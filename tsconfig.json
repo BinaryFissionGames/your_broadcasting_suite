@@ -1,9 +1,9 @@
 {
-  "compilerOptions": {
-    "module": "commonjs",
-    "target": "es5",
-    "outDir": "build-node/"
-  },
-  "include": ["src-node/**/*"],
-  "exclude": ["src-node/test/**/*"]
+    "compilerOptions": {
+        "module": "commonjs",
+        "target": "es5",
+        "outDir": "build-node/"
+    },
+    "include": ["src-node/**/*"],
+    "exclude": ["src-node/test/**/*"]
 }

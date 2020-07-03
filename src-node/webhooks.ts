@@ -1,29 +1,26 @@
-import {
-    TwitchWebhookPersistenceManager, WebhookPersistenceObject
-} from "@binaryfissiongames/twitch-webhooks/dist";
-import {WebhookType} from "@binaryfissiongames/twitch-webhooks";
-import {Webhook} from '@prisma/client'
-import {prisma} from "./model/prisma";
+import {TwitchWebhookPersistenceManager, WebhookPersistenceObject} from '@binaryfissiongames/twitch-webhooks/dist';
+import {WebhookType} from '@binaryfissiongames/twitch-webhooks';
+import {Webhook} from '@prisma/client';
+import {prisma} from './model/prisma';
 
 class SequelizeTwitchWebhookPersistenceManager implements TwitchWebhookPersistenceManager {
     async deleteWebhook(webhookId: string): Promise<void> {
         await prisma.webhook.delete({
             where: {
-                id: webhookId
-            }
+                id: webhookId,
+            },
         });
     }
 
-    async destroy(): Promise<void> {
-    }
+    async destroy(): Promise<void> {} //eslint-disable-line @typescript-eslint/no-empty-function
 
     async getAllWebhooks(): Promise<WebhookPersistenceObject[]> {
-        let webhooks = await prisma.webhook.findMany();
+        const webhooks = await prisma.webhook.findMany();
         return webhooks.map(this.modelToObject);
     }
 
     async getWebhookById(webhookId: string): Promise<WebhookPersistenceObject> {
-        let webhook = await prisma.webhook.findOne({where: {id: webhookId}});
+        const webhook = await prisma.webhook.findOne({where: {id: webhookId}});
         if (webhook === null) {
             return null;
         }
@@ -31,15 +28,17 @@ class SequelizeTwitchWebhookPersistenceManager implements TwitchWebhookPersisten
     }
 
     async persistWebhook(webhook: WebhookPersistenceObject): Promise<void> {
-        let url = new URL(webhook.href);
+        const url = new URL(webhook.href);
         let twitchUserId: string;
         switch (webhook.type) {
             case WebhookType.UserFollows:
-                let to_id = url.searchParams.get('to_id');
-                if (to_id) {
-                    twitchUserId = to_id;
-                } else {
-                    twitchUserId = url.searchParams.get('from_id');
+                {
+                    const to_id = url.searchParams.get('to_id');
+                    if (to_id) {
+                        twitchUserId = to_id;
+                    } else {
+                        twitchUserId = url.searchParams.get('from_id');
+                    }
                 }
                 break;
             case WebhookType.StreamChanged:
@@ -54,23 +53,23 @@ class SequelizeTwitchWebhookPersistenceManager implements TwitchWebhookPersisten
                 break;
         }
 
-        let user = await prisma.user.findOne({
+        const user = await prisma.user.findOne({
             where: {
-                twitchId: twitchUserId
-            }
+                twitchId: twitchUserId,
+            },
         });
 
-        let webhookDataObject = Object.assign({owner: user}, webhook);
+        const webhookDataObject = Object.assign({owner: {connect: user}}, webhook);
 
         await prisma.webhook.create({
-            data: webhookDataObject
+            data: webhookDataObject,
         });
     }
 
     async saveWebhook(webhook: WebhookPersistenceObject): Promise<void> {
         await prisma.webhook.update({
             where: {id: webhook.id},
-            data: webhook
+            data: webhook,
         });
     }
 
@@ -83,11 +82,9 @@ class SequelizeTwitchWebhookPersistenceManager implements TwitchWebhookPersisten
             subscriptionStart: webhook.subscriptionStart,
             subscriptionEnd: webhook.subscriptionEnd,
             secret: webhook.secret,
-            leaseSeconds: webhook.leaseSeconds
-        }
+            leaseSeconds: webhook.leaseSeconds,
+        };
     }
 }
 
-export {
-    SequelizeTwitchWebhookPersistenceManager
-}
+export {SequelizeTwitchWebhookPersistenceManager};

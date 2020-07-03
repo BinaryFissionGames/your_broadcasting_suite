@@ -1,4 +1,4 @@
-import {GenericError} from "./common";
+import {GenericError} from './common';
 
 export class NeedsReAuthError extends GenericError {
     constructor() {
