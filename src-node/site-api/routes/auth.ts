@@ -6,6 +6,7 @@ import {
     API_PATH_VERIFY_LOGGED_IN_FULL_PATH,
     API_PATH_LOG_OUT_FULL_PATH
 } from "twitch_broadcasting_suite_shared/dist";
+import {initUserIdempotent} from "../logic/user";
 
 function addAuthRoutes(app: Application) {
     //Auth endpoints
@@ -24,6 +25,7 @@ function addAuthRoutes(app: Application) {
 
                 if (user) {
                     userLoggedIn = true;
+                    await initUserIdempotent(req.session.userId);
                 }
             }
 

@@ -1,4 +1,5 @@
 import * as crypto from 'crypto';
+import {hasAndIsOfType} from "twitch_broadcasting_suite_shared/dist/types/helper";
 
 export class GenericError extends Error {
     public userFacingMessage: string;
@@ -21,4 +22,12 @@ export class InvalidPayloadError extends GenericError {
         //This should not happen under normal operation, so there is no real "user facing error"/
         //The default "internal server error" should suffice for now.
     }
+}
+
+export function isGenericError(obj: any): obj is GenericError {
+    return typeof obj === 'object' && obj !== null &&
+        hasAndIsOfType(obj, "userFacingMessage", 'string') &&
+        hasAndIsOfType(obj, "errorId", 'string') &&
+        hasAndIsOfType(obj, "statusCode", 'number') &&
+        hasAndIsOfType(obj, "needsReauth", 'boolean');
 }
