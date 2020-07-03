@@ -13,7 +13,7 @@ export class QueueNotFound extends GenericError {
     constructor() {
         super('Requested queue not found!');
         this.userFacingMessage = 'Requested queue not found!';
-        this.needsReauth = true;
+        this.needsReauth = false;
         this.statusCode = 400;
     }
 }

@@ -16,7 +16,10 @@ import {
     isAddYoutubeQueueItemRequest,
     API_PATH_ADD_TEST_BITS_QUEUE_ITEM_FULL_PATH,
     isAddBitsQueueItemRequest,
-    API_PATH_ADD_TEST_DONATION_QUEUE_ITEM_FULL_PATH, isAddDonationQueueItemRequest
+    API_PATH_ADD_TEST_DONATION_QUEUE_ITEM_FULL_PATH,
+    isAddDonationQueueItemRequest,
+    API_PATH_GET_QUEUE_ITEMS,
+    GetAllQueuesResponse, API_PATH_GET_QUEUES_FULL_PATH
 } from "twitch_broadcasting_suite_shared/dist";
 import {NeedsReAuthError, QueueNotFound} from "../errors/user_errors";
 import {
@@ -24,7 +27,7 @@ import {
     createFollowsNotification,
     createRaidNotification,
     createSubscriberNotification, createYoutubeVideoNotification,
-    getAllQueueItemsForUser, queueBelongsToUser
+    getAllQueueItemsForUser, getAllQueuesForUser, queueBelongsToUser
 } from "../logic/queue";
 import {InvalidPayloadError} from "../errors/common";
 import {isAddFollowQueueItemRequest} from "twitch_broadcasting_suite_shared/dist/types/api/queue";
@@ -44,6 +47,25 @@ function addUserRoutes(app: Application) {
             }
             throw new NeedsReAuthError();
         } catch (e) {
+            next(e);
+        }
+    });
+
+    app.get(API_PATH_GET_QUEUES_FULL_PATH, async function(req, res, next){
+        try {
+            let queues = await getAllQueuesForUser(req.session.userId);
+            let response: GetAllQueuesResponse = {
+                state: {
+                    needsReauth: false,
+                    error: false
+                },
+                queues
+            };
+
+            res.status(200);
+            res.send(JSON.stringify(response));
+            res.end();
+        }catch (e) {
             next(e);
         }
     });

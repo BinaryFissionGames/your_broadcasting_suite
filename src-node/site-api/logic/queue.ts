@@ -1,11 +1,31 @@
 import {
-    AddBitsQueueItemRequest, AddDonationQueueItemRequest,
-    AddFollowQueueItemRequest, AddRaidQueueItemRequest, AddSubscriptionQueueItemRequest, AddYoutubeQueueItemRequest,
+    AddBitsQueueItemRequest,
+    AddDonationQueueItemRequest,
+    AddFollowQueueItemRequest,
+    AddRaidQueueItemRequest,
+    AddSubscriptionQueueItemRequest,
+    AddYoutubeQueueItemRequest,
+    Queue,
     QueueItem,
     QueueItemTypes
 } from "twitch_broadcasting_suite_shared/dist";
 import {prisma} from "../../model/prisma";
 import {formatCentsAsUSD} from "./util";
+
+export async function getAllQueuesForUser(userId: number): Promise<Queue[]> {
+    let queues = await prisma.queue.findMany({
+        where: {
+            userId
+        }
+    });
+
+    return queues.map(queue => {
+        return {
+            queueId: queue.id,
+            queueName: queue.queueName
+        }
+    });
+}
 
 export async function getAllQueueItemsForUser(userId: number, queueId: number): Promise<QueueItem[]> {
     let items = await prisma.queueItem.findMany({
