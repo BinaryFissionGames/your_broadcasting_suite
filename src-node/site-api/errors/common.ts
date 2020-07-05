@@ -18,8 +18,8 @@ export class GenericError extends Error {
 }
 
 export class InvalidPayloadError extends GenericError {
-    constructor(type: string, endpoint: string) {
-        super(`Payload does not match type ${type} for endpoint ${endpoint}.`);
+    constructor(type: string, endpoint: string, payload: any) {
+        super(`Payload does not match type ${type} for endpoint ${endpoint}.\nPayload: ${JSON.stringify(payload)}`);
         //This should not happen under normal operation, so there is no real "user facing error"/
         //The default "internal server error" should suffice for now.
     }

@@ -94,7 +94,7 @@ function addUserRoutes(app: Application) {
                 res.send(JSON.stringify(response));
                 res.end();
             } else {
-                throw new InvalidPayloadError('QueueItemsRequest', API_PATH_GET_QUEUE_ITEMS_FULL_PATH);
+                throw new InvalidPayloadError('QueueItemsRequest', API_PATH_GET_QUEUE_ITEMS_FULL_PATH, req.body);
             }
         } catch (e) {
             next(e);
@@ -123,7 +123,8 @@ function addUserRoutes(app: Application) {
             } else {
                 throw new InvalidPayloadError(
                     'AddFollowQueueItemRequest',
-                    API_PATH_ADD_TEST_FOLLOW_QUEUE_ITEM_FULL_PATH
+                    API_PATH_ADD_TEST_FOLLOW_QUEUE_ITEM_FULL_PATH,
+                    req.body
                 );
             }
         } catch (e) {
@@ -153,7 +154,8 @@ function addUserRoutes(app: Application) {
             } else {
                 throw new InvalidPayloadError(
                     'AddSubscriptionQueueItemRequest',
-                    API_PATH_ADD_TEST_SUBSCRIBE_QUEUE_ITEM_FULL_PATH
+                    API_PATH_ADD_TEST_SUBSCRIBE_QUEUE_ITEM_FULL_PATH,
+                    req.body
                 );
             }
         } catch (e) {
@@ -181,7 +183,11 @@ function addUserRoutes(app: Application) {
                 res.send(JSON.stringify(resp));
                 res.end();
             } else {
-                throw new InvalidPayloadError('AddRaidQueueItemRequest', API_PATH_ADD_TEST_RAID_QUEUE_ITEM_FULL_PATH);
+                throw new InvalidPayloadError(
+                    'AddRaidQueueItemRequest',
+                    API_PATH_ADD_TEST_RAID_QUEUE_ITEM_FULL_PATH,
+                    req.body
+                );
             }
         } catch (e) {
             next(e);
@@ -210,7 +216,8 @@ function addUserRoutes(app: Application) {
             } else {
                 throw new InvalidPayloadError(
                     'AddYoutubeQueueItemRequest',
-                    API_PATH_ADD_TEST_YOUTUBE_QUEUE_ITEM_FULL_PATH
+                    API_PATH_ADD_TEST_YOUTUBE_QUEUE_ITEM_FULL_PATH,
+                    req.body
                 );
             }
         } catch (e) {
@@ -238,7 +245,11 @@ function addUserRoutes(app: Application) {
                 res.send(JSON.stringify(resp));
                 res.end();
             } else {
-                throw new InvalidPayloadError('AddBitsQueueItemRequest', API_PATH_ADD_TEST_BITS_QUEUE_ITEM_FULL_PATH);
+                throw new InvalidPayloadError(
+                    'AddBitsQueueItemRequest',
+                    API_PATH_ADD_TEST_BITS_QUEUE_ITEM_FULL_PATH,
+                    req.body
+                );
             }
         } catch (e) {
             next(e);
@@ -267,7 +278,8 @@ function addUserRoutes(app: Application) {
             } else {
                 throw new InvalidPayloadError(
                     'AddDonationQueueItemRequest',
-                    API_PATH_ADD_TEST_DONATION_QUEUE_ITEM_FULL_PATH
+                    API_PATH_ADD_TEST_DONATION_QUEUE_ITEM_FULL_PATH,
+                    req.body
                 );
             }
         } catch (e) {

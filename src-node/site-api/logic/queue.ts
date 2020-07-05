@@ -142,8 +142,8 @@ export async function createYoutubeVideoNotification(data: AddYoutubeQueueItemRe
                 youtubeVideoNotification: {
                     create: {
                         videoId: data.videoIdOrUrl,
-                        startTimeS: data.startTimeS,
-                        durationS: data.durationS,
+                        startTimeS: data.startTimeS || 0, // TODO: From URL if not available
+                        durationS: data.durationS || 0, // TODO: From data if not available
                         sharingUser: data.sharingUser,
                     },
                 },

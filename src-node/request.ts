@@ -46,8 +46,8 @@ async function refreshToken(oAuthToken: string): Promise<string> {
                 process.env.CLIENT_SECRET,
                 scopes
             );
-            //TODO: Update refresh token endpoint to return token expiry and stuff
-            prisma.token.update({
+
+            await prisma.token.update({
                 where: {
                     id: token.id,
                 },
