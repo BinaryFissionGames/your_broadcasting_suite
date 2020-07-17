@@ -13,26 +13,25 @@ import * as fs from 'fs';
 import {SequelizeTwitchWebhookPersistenceManager} from './webhooks';
 import {getOAuthToken, refreshToken} from './request';
 import {parseMySqlConnString} from './model/util';
-import {addClient, closeMockServer as closeAuthMockServer, setUpMockAuthServer} from 'twitch-mock-oauth-server/dist';
-import {closeMockServer as closeWebhookMockServer, setUpMockWebhookServer} from 'twitch-mock-webhook-hub/dist';
-import {promisify} from 'util';
-import {prisma} from './model/prisma';
+import {addClient, setUpMockAuthServer} from 'twitch-mock-oauth-server/dist';
+import {setUpMockWebhookServer} from 'twitch-mock-webhook-hub/dist';
 import {createOrGetUser} from './model/administrator/user';
 import {EXPRESS_SESSION_COOKIE_NAME} from './constants';
-import {closeWebsocketServer, initWebsocketServer} from './websocket-api/alerts';
-import redisClient, {pubSubRedisClient} from './model/redis';
+import {initWebsocketServer} from './websocket-api/alerts';
+import {shutdownGracefully} from './shutdown';
+import {initProcessUpkeep} from './process-management/logic';
 
 const MySqlStore = mysql_session(session);
 const mySqlStoreOptions = parseMySqlConnString(process.env.DATABASE_URL);
 
 const app = express();
-let sessionStore = new MySqlStore(mySqlStoreOptions);
+const sessionStore = new MySqlStore(mySqlStoreOptions);
 const sess: SessionOptions = {
     secret: process.env.SESSION_SECRET,
     store: sessionStore,
     resave: false,
     saveUninitialized: false,
-    name: EXPRESS_SESSION_COOKIE_NAME
+    name: EXPRESS_SESSION_COOKIE_NAME,
 };
 
 app.use(session(sess)); // Need to set up session middleware
@@ -42,8 +41,6 @@ setupTwitchOAuthPath({
     callback: async (req, res, info) => {
         const user = await createOrGetUser(info);
         req.session.userId = user.id;
-        //TODO: If this is the user's first time logging in, set up webhooks
-
         res.redirect(307, process.env.APPLICATION_URL);
         res.end();
     }, // Callback when oauth info is gotten. Session info should be used
@@ -65,8 +62,8 @@ const webhookManager: TwitchWebhookManager = new TwitchWebhookManager({
     base_path: 'webhooks',
     renewalScheduler: resubScheduler,
     persistenceManager: new SequelizeTwitchWebhookPersistenceManager(),
-    getOAuthToken: (userId) => getOAuthToken(userId),
-    refreshOAuthToken: (token) => refreshToken(token),
+    getOAuthToken: getOAuthToken,
+    refreshOAuthToken: refreshToken,
     hubUrl: process.env.NODE_ENV == 'development' ? process.env.MOCK_HUB_URL : undefined,
 });
 
@@ -101,15 +98,14 @@ async function startup() {
     }
 
     if (certKey && cert && chain) {
-        httpsServer = https
-            .createServer(
-                {
-                    key: certKey,
-                    cert: cert,
-                    ca: chain,
-                },
-                app
-            );
+        httpsServer = https.createServer(
+            {
+                key: certKey,
+                cert: cert,
+                ca: chain,
+            },
+            app
+        );
     }
 
     if (process.env.NODE_ENV === 'development') {
@@ -135,9 +131,11 @@ async function startup() {
 
     server = http.createServer(app);
 
+    await initProcessUpkeep(process.env.PROCESS_ID);
+
     await initWebsocketServer(server, httpsServer);
 
-    if(httpsServer){
+    if (httpsServer) {
         httpsServer.listen(Number.parseInt(process.env.HTTPS_PORT), async () => {
             console.log(`HTTPS listening on port ${process.env.HTTPS_PORT}`);
             await webhookManager.init();
@@ -151,61 +149,6 @@ async function startup() {
 
 startup().then(() => console.log('Server is started'));
 
-process.on('SIGINT', async () => {
-    let exitCode = 0;
-    const closeServer = promisify(server.close.bind(server));
-    try {
-        await closeWebsocketServer()
-    } catch (e) {
-        console.log('Error while shutting down websocket server');
-        console.log(e);
-        exitCode = 1;
-    }
+process.on('SIGINT', shutdownGracefully);
 
-
-    if (httpsServer) {
-        const closeHttpsServer = promisify(httpsServer.close.bind(httpsServer));
-
-        try {
-            await closeHttpsServer();
-        } catch (e) {
-            console.log('Error while shutting down https server');
-            console.log(e);
-            exitCode = 1;
-        }
-    }
-
-    try {
-        await closeServer();
-    } catch (e) {
-        console.log('Error while shutting down http server');
-        console.log(e);
-        exitCode = 1;
-    }
-
-    try {
-        await webhookManager.destroy();
-    } catch (e) {
-        console.log('Error while destroying webhook manager');
-        console.log(e);
-        exitCode = 1;
-    }
-
-    try {
-        await prisma.disconnect();
-    } catch (e) {
-        console.log('Error while shutting down database connection');
-        console.log(e);
-        exitCode = 1;
-    }
-
-    if (process.env.NODE_ENV === 'development') {
-        await closeAuthMockServer(true);
-        await closeWebhookMockServer(true);
-    }
-
-    redisClient.quit();
-    pubSubRedisClient.quit();
-
-    process.exit(exitCode);
-});
+export {server, httpsServer, webhookManager};

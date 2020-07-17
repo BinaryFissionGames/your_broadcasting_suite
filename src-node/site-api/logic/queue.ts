@@ -11,7 +11,7 @@ import {
 } from 'twitch_broadcasting_suite_shared/dist';
 import {prisma} from '../../model/prisma';
 import {formatCentsAsUSD} from './util';
-import { QueueItemCreateArgs } from '@prisma/client';
+import {QueueItemCreateArgs} from '@prisma/client';
 import {getFirstUncompletedQueueItem} from '../../websocket-api/alerts/logic/logic';
 import redisClient from '../../model/redis';
 import {promisify} from 'util';
@@ -228,41 +228,45 @@ async function getQueueItemCreationObject(type: QueueItemTypes, queueId: number,
 
 //Creates the queue item, notifies websocket clients that the new queue item has been added, if necessary
 async function createQueueItem(createArgs: QueueItemCreateArgs): Promise<void> {
-    let item = await prisma.queueItem.create(createArgs);
+    const item = await prisma.queueItem.create(createArgs);
 
-    let client = redisClient.duplicate();
+    const client = redisClient.duplicate();
 
-    console.log('Watching current alert key...')
+    console.log('Watching current alert key...');
     return new Promise((resolve, reject) => {
-        client.watch(getCurrentAlertIdKey(item.queueId), async (err, res) => {
-            try{
-                if(err){
+        client.watch(getCurrentAlertIdKey(item.queueId), async (err, _res) => {
+            try {
+                if (err) {
                     throw err;
                 }
 
-                console.log('Getting current alert key...')
-                let currentAlert = await getCurrentAlertId(item.queueId);
+                console.log('Getting current alert key...');
+                const currentAlert = await getCurrentAlertId(item.queueId);
                 //Current alert exists, which means that we do not need to notify about the one we just added
-                if(currentAlert){
+                if (currentAlert) {
                     console.log('Already a current alert, unwatching');
                     await promisify(client.unwatch.bind(client))();
                     return resolve();
                 }
 
                 console.log('Getting first incomplete queue item');
-                let nextItem = await getFirstUncompletedQueueItem(item.queueId);
+                const nextItem = await getFirstUncompletedQueueItem(item.queueId);
                 //Item is not the "next" item, so we shouldn't bother sending an alert.
-                if(item.id !== nextItem.id){
+                if (item.id !== nextItem.id) {
                     console.log('Queue item is not the "next" queue item');
                     await promisify(client.unwatch.bind(client))();
                     return resolve();
                 }
 
-                let multicommand = client.MULTI()
+                const multicommand = client
+                    .MULTI()
                     .SET(getCurrentAlertIdKey(item.queueId), item.id.toFixed(0))
-                    .PUBLISH(getAlertQueueSubKey(item.queueId), JSON.stringify(await getPushAlertMessageToPublish(item)));
+                    .PUBLISH(
+                        getAlertQueueSubKey(item.queueId),
+                        JSON.stringify(await getPushAlertMessageToPublish(item))
+                    );
 
-                let exec = promisify(multicommand.exec.bind(multicommand));
+                const exec = promisify(multicommand.exec.bind(multicommand));
                 console.log('EXECing multi command');
                 await exec();
                 //Note here: We don't check the result of exec; It may fail, meaning that the set and publish won't run.
@@ -271,7 +275,7 @@ async function createQueueItem(createArgs: QueueItemCreateArgs): Promise<void> {
                 resolve();
             } catch (e) {
                 reject(e);
-            }finally {
+            } finally {
                 client.quit();
             }
         });

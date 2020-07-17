@@ -4,9 +4,10 @@ import {connection} from 'websocket';
 import {
     getAlertClientSetCompletedKey,
     getAlertClientSetKey,
-    getAlertClientSetValue,
     getAlertQueueSubKey,
-    getCurrentAlertIdKey
+    getCurrentAlertIdKey,
+    getProcessConnectionIdsForQueueKey,
+    getProcessQueuesKey,
 } from './redis_keys';
 import {convertToAlertType, getFirstUncompletedQueueItem, markQueueItemAsDone} from './logic';
 import {AlertSocket} from '../types/websocket_types';
@@ -14,14 +15,14 @@ import {knex} from '../../../model/knex';
 import {AlertMessageType, EmitNextAlertMessage} from '../../../model/messages/types';
 import {QueueItem} from '@prisma/client';
 
-export let queueIdToConnectionsMap = new Map<number, connection[]>();
+export const queueIdToConnectionsMap = new Map<number, connection[]>();
 
 export async function addAlertConnection(queueId: number, conn: connection): Promise<void> {
-    let socket = <AlertSocket>conn.socket;
+    const socket = <AlertSocket>conn.socket;
 
-    let connectionAdded: boolean = false;
-    while(!connectionAdded){
-        connectionAdded = await tryAddAlertToConnectionSet(queueId, socket)
+    let connectionAdded = false;
+    while (!connectionAdded) {
+        connectionAdded = await tryAddAlertToConnectionSet(queueId, socket);
     }
 
     if (queueIdToConnectionsMap.has(queueId)) {
@@ -29,47 +30,49 @@ export async function addAlertConnection(queueId: number, conn: connection): Pro
     } else {
         queueIdToConnectionsMap.set(queueId, [conn]);
 
-        let subscribe = promisify(pubSubRedisClient.subscribe.bind(pubSubRedisClient));
+        const subscribe = promisify(pubSubRedisClient.subscribe.bind(pubSubRedisClient));
         await subscribe(getAlertQueueSubKey(queueId));
     }
 }
 
 //Try adding the alert to the connection set. This also may update the current queue item, if there isn't one set and this is the first
 //connection added to the set. Returns false if the optimistic lock failed. Returns true if the operation was successful.
-async function tryAddAlertToConnectionSet(queueId: number, socket: AlertSocket): Promise<boolean>{
+async function tryAddAlertToConnectionSet(queueId: number, socket: AlertSocket): Promise<boolean> {
     return new Promise((resolve, reject) => {
-        let client = redisClient.duplicate();
-        client.WATCH(getAlertClientSetKey(queueId), getCurrentAlertIdKey(queueId), async (err, res) => {
-            try{
-                if(err){
+        const client = redisClient.duplicate();
+        client.WATCH(getAlertClientSetKey(queueId), getCurrentAlertIdKey(queueId), async (err, _res) => {
+            try {
+                if (err) {
                     throw err;
                 }
 
-                let get = promisify(client.get.bind(client));
-                let scard = promisify(client.scard.bind(client));
+                const get = promisify(client.get.bind(client));
+                const scard = promisify(client.scard.bind(client));
 
                 let multiCommand = client.multi();
 
-                let setSize: number = await scard(getAlertClientSetKey(queueId));
+                const setSize: number = await scard(getAlertClientSetKey(queueId));
 
-                if(setSize == 0){
-                    let currentAlert = await get(getCurrentAlertIdKey(queueId));
-                    if(!currentAlert){
+                if (setSize == 0) {
+                    const currentAlert = await get(getCurrentAlertIdKey(queueId));
+                    if (!currentAlert) {
                         //No current alert, AND there are no listening clients, so we'll need to set the current queue item
-                        let queueItem = await getFirstUncompletedQueueItem(queueId);
-                        if(queueItem){
+                        const queueItem = await getFirstUncompletedQueueItem(queueId);
+                        if (queueItem) {
                             multiCommand = multiCommand.set(getCurrentAlertIdKey(queueId), queueItem.id.toFixed(0));
                         }
                     }
                 }
 
-                multiCommand = multiCommand.sadd(getAlertClientSetKey(queueId),
-                    getAlertClientSetValue(Number.parseInt(process.env.SERVER_NODE), Number.parseInt(process.env.PROCESS_IN_CLUSTER), queueId, socket.connectionId))
+                multiCommand = multiCommand
+                    .sadd(getAlertClientSetKey(queueId), socket.connectionId)
+                    .sadd(getProcessQueuesKey(process.env.PROCESS_ID), queueId.toFixed(0))
+                    .sadd(getProcessConnectionIdsForQueueKey(queueId, process.env.PROCESS_ID));
 
-                let exec = promisify(multiCommand.exec.bind(multiCommand));
-                let resp = await exec();
+                const exec = promisify(multiCommand.exec.bind(multiCommand));
+                const resp = await exec();
 
-                if(resp === null){
+                if (resp === null) {
                     //Watch failed
                     return resolve(false);
                 } else {
@@ -84,54 +87,66 @@ async function tryAddAlertToConnectionSet(queueId: number, socket: AlertSocket):
     });
 }
 
-
 export async function removeAlertConnection(queueId: number, conn: connection): Promise<void> {
-    let srem = promisify(redisClient.SREM.bind(redisClient));
-    let socket = <AlertSocket>conn.socket;
+    const srem = promisify(redisClient.SREM.bind(redisClient));
+    const socket = <AlertSocket>conn.socket;
 
-    await srem(getAlertClientSetKey(queueId), getAlertClientSetValue(Number.parseInt(process.env.SERVER_NODE), Number.parseInt(process.env.PROCESS_IN_CLUSTER), queueId, socket.connectionId));
+    await srem(getAlertClientSetKey(queueId), socket.connectionId);
 
-    let connections = queueIdToConnectionsMap.get(queueId);
+    const connections = queueIdToConnectionsMap.get(queueId);
     if (connections) {
-        let updatedConnections = connections.filter((item) => item !== conn);
+        const updatedConnections = connections.filter((item) => item !== conn);
         if (updatedConnections.length === 0) {
             queueIdToConnectionsMap.delete(queueId);
 
-            let unsub = promisify(pubSubRedisClient.unsubscribe.bind(pubSubRedisClient));
+            const unsub = promisify(pubSubRedisClient.unsubscribe.bind(pubSubRedisClient));
             await unsub(getAlertQueueSubKey(queueId));
+
+            //Process is no longer associated w/ queue
+            await srem(getProcessQueuesKey(process.env.PROCESS_ID), queueId.toFixed(0));
         } else {
             queueIdToConnectionsMap.set(queueId, updatedConnections);
         }
+
+        //Process is no longer associated w/ connection.
+        await srem(getProcessConnectionIdsForQueueKey(queueId, process.env.PROCESS_ID), socket.connectionId);
     }
 }
 
 export async function markAlertDoneForConnection(queueId: number, connId: string): Promise<void> {
-    let sadd = promisify(redisClient.SADD.bind(redisClient));
-    await sadd(getAlertClientSetCompletedKey(queueId), getAlertClientSetValue(Number.parseInt(process.env.SERVER_NODE), Number.parseInt(process.env.PROCESS_IN_CLUSTER), queueId, connId));
+    const sadd = promisify(redisClient.SADD.bind(redisClient));
+    await sadd(getAlertClientSetCompletedKey(queueId), connId);
 }
 
 //Check if connection set = alert done set, and publish the next alert
 //Returns true if the check was successful (all alerts where confirmed)
 export async function checkAndPublishNextAlert(queueId: number): Promise<boolean> {
-    let client = redisClient.duplicate();
+    const client = redisClient.duplicate();
     //Watch both completed set & client set, both of these must match. If either is changed, then the process/thread/fiber that changed them
     //Must check instead.
-    let sdiff = promisify(client.sdiff.bind(client));
-    let scard = promisify(client.scard.bind(client));
-    let unwatch = promisify(client.unwatch.bind(client));
-    let get = promisify(client.get.bind(client));
+    const sdiff = promisify(client.sdiff.bind(client));
+    const scard = promisify(client.scard.bind(client));
+    const unwatch = promisify(client.unwatch.bind(client));
+    const get = promisify(client.get.bind(client));
 
     return new Promise((resolve, reject) => {
-        client.watch(getAlertClientSetCompletedKey(queueId), getAlertClientSetKey(queueId), async (err, res) => {
+        client.watch(getAlertClientSetCompletedKey(queueId), getAlertClientSetKey(queueId), async (err, _res) => {
             try {
-                let setDifference: string[] = await sdiff(getAlertClientSetKey(queueId), getAlertClientSetCompletedKey(queueId));
+                if (err) {
+                    throw err;
+                }
+
+                const setDifference: string[] = await sdiff(
+                    getAlertClientSetKey(queueId),
+                    getAlertClientSetCompletedKey(queueId)
+                );
 
                 if (setDifference.length >= 1) {
-                    console.debug('Set difference is gt 1')
+                    console.debug('Set difference is gt 1');
                     return unwatch();
                 }
 
-                let numConnectedClients: number = await scard(getAlertClientSetKey(queueId));
+                const numConnectedClients: number = await scard(getAlertClientSetKey(queueId));
                 if (numConnectedClients == 0) {
                     return unwatch(); // No clients connected; Thus, we shouldn't mark this alert as done, as it may not have been seen yet.
                 }
@@ -140,30 +155,32 @@ export async function checkAndPublishNextAlert(queueId: number): Promise<boolean
                 //Then we need to clear the alert completed set, and set the current alert ID.
                 // We should rollback the alert DB transaction if the watch fails.
 
-                let alertId = await get(getCurrentAlertIdKey(queueId));
-                let trx = await knex.transaction();
+                const alertId = await get(getCurrentAlertIdKey(queueId));
+                const trx = await knex.transaction();
 
                 try {
                     console.log('marking queue item as done');
                     await markQueueItemAsDone(alertId, trx);
                     console.log('Getting next item');
-                    let nextQueueItem = await getFirstUncompletedQueueItem(queueId, trx);
+                    const nextQueueItem = await getFirstUncompletedQueueItem(queueId, trx);
 
-                    let multiCommand = client.MULTI()
-                        .DEL(getAlertClientSetCompletedKey(queueId));
+                    let multiCommand = client.MULTI().DEL(getAlertClientSetCompletedKey(queueId));
                     if (nextQueueItem) {
-                        let websocketAlert = await getPushAlertMessageToPublish(nextQueueItem);
-                        multiCommand = multiCommand.SET(getCurrentAlertIdKey(queueId), nextQueueItem.id.toFixed(0)).PUBLISH(getAlertQueueSubKey(queueId), JSON.stringify(websocketAlert));
+                        const websocketAlert = await getPushAlertMessageToPublish(nextQueueItem);
+                        multiCommand = multiCommand
+                            .SET(getCurrentAlertIdKey(queueId), nextQueueItem.id.toFixed(0))
+                            .PUBLISH(getAlertQueueSubKey(queueId), JSON.stringify(websocketAlert));
                     } else {
                         multiCommand = multiCommand.DEL(getCurrentAlertIdKey(queueId));
                     }
 
-                    let exec = promisify(multiCommand.exec.bind(multiCommand));
+                    const exec = promisify(multiCommand.exec.bind(multiCommand));
 
-                    let execResult: any[] = await exec();
+                    const execResult = await exec();
 
                     if (execResult === null) {
                         //Couldn't EXEC redis transaction, rollback, let whoever changed our watched keys deal w/ this.
+                        //Possible TODO: don't use transactions, use some more performant method. (e.g. make get first uncompleted queue item ignore current queue item)
                         console.log('Exec failed.');
                         await trx.rollback();
                         return resolve(false);
@@ -188,8 +205,8 @@ export async function checkAndPublishNextAlert(queueId: number): Promise<boolean
 }
 
 export async function getCurrentAlertId(queueId: number): Promise<number | undefined> {
-    let get: (string) => Promise<string | undefined> = promisify(redisClient.GET.bind(redisClient));
-    let res = await get(getCurrentAlertIdKey(queueId));
+    const get: (string) => Promise<string | undefined> = promisify(redisClient.GET.bind(redisClient));
+    const res = await get(getCurrentAlertIdKey(queueId));
     if (res) {
         return Number.parseInt(res);
     }
@@ -198,10 +215,10 @@ export async function getCurrentAlertId(queueId: number): Promise<number | undef
 }
 
 export async function getPushAlertMessageToPublish(queueItem: QueueItem) {
-    let websocketAlert: EmitNextAlertMessage = {
+    const websocketAlert: EmitNextAlertMessage = {
         type: AlertMessageType.EMIT_NEXT_ALERT,
         queueItemId: queueItem.id,
-        queueItemAlert: await convertToAlertType(queueItem)
+        queueItemAlert: await convertToAlertType(queueItem),
     };
 
     return websocketAlert;

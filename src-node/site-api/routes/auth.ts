@@ -12,7 +12,6 @@ function addAuthRoutes(app: Application) {
     //Auth endpoints
     //Verifies if the caller is logged in or not
     //Possibly returns some user data (TBD)
-    //TODO Seperate into logic + route
     app.get(API_PATH_VERIFY_LOGGED_IN_FULL_PATH, async function (req, res, next) {
         try {
             let userLoggedIn = false;

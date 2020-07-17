@@ -1,10 +1,8 @@
 import * as Knex from 'knex';
 
-let knex = Knex({
+const knex = Knex({
     client: 'mysql',
-    connection: process.env.DATABASE_URL
+    connection: process.env.DATABASE_URL,
 });
 
-export {
-    knex
-}
+export {knex};

@@ -20,7 +20,7 @@ export async function initUserIdempotent(userId: number) {
                     id: userId,
                 },
             },
-            secret: crypto.randomBytes(16).toString('hex')
+            secret: crypto.randomBytes(16).toString('hex'),
         },
     });
 }
