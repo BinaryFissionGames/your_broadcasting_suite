@@ -11,6 +11,12 @@ import {
 } from 'twitch_broadcasting_suite_shared/dist';
 import {prisma} from '../../model/prisma';
 import {formatCentsAsUSD} from './util';
+import { QueueItemCreateArgs } from '@prisma/client';
+import {getFirstUncompletedQueueItem} from '../../websocket-api/alerts/logic/logic';
+import redisClient from '../../model/redis';
+import {promisify} from 'util';
+import {getAlertQueueSubKey, getCurrentAlertIdKey} from '../../websocket-api/alerts/logic/redis_keys';
+import {getCurrentAlertId, getPushAlertMessageToPublish} from '../../websocket-api/alerts/logic/redis_logic';
 
 export async function getAllQueuesForUser(userId: number): Promise<Queue[]> {
     const queues = await prisma.queue.findMany({
@@ -68,7 +74,7 @@ export async function createFollowsNotification(data: AddFollowQueueItemRequest)
         `User ${data.followUser} is now following!`
     );
 
-    await prisma.queueItem.create({
+    await createQueueItem({
         data: Object.assign(
             {
                 followsNotification: {
@@ -89,7 +95,7 @@ export async function createSubscriberNotification(data: AddSubscriptionQueueIte
         `User ${data.subscribingUser} subscribed for ${data.streak} month(s)!\n\n ${data.subscriberMessage || ''}`
     );
 
-    await prisma.queueItem.create({
+    await createQueueItem({
         data: Object.assign(
             {
                 subNotification: {
@@ -112,7 +118,7 @@ export async function createRaidNotification(data: AddRaidQueueItemRequest): Pro
         `User ${data.raidUser} raided with ${data.viewerAmount} viewers!`
     );
 
-    await prisma.queueItem.create({
+    await createQueueItem({
         data: Object.assign(
             {
                 raidNotification: {
@@ -136,7 +142,7 @@ export async function createYoutubeVideoNotification(data: AddYoutubeQueueItemRe
         `User ${data.sharingUser} shared video ${data.videoIdOrUrl}`
     );
 
-    await prisma.queueItem.create({
+    await createQueueItem({
         data: Object.assign(
             {
                 youtubeVideoNotification: {
@@ -160,7 +166,7 @@ export async function createBitsNotification(data: AddBitsQueueItemRequest): Pro
         `User ${data.user} gave ${data.amount} bits!\n\n ${data.message || ''}`
     );
 
-    await prisma.queueItem.create({
+    await createQueueItem({
         data: Object.assign(
             {
                 bitsNotification: {
@@ -190,7 +196,7 @@ export async function createDonationNotification(data: AddDonationQueueItemReque
         desc
     );
 
-    await prisma.queueItem.create({
+    await createQueueItem({
         data: Object.assign(
             {
                 donationNotification: {
@@ -218,4 +224,56 @@ async function getQueueItemCreationObject(type: QueueItemTypes, queueId: number,
             },
         },
     };
+}
+
+//Creates the queue item, notifies websocket clients that the new queue item has been added, if necessary
+async function createQueueItem(createArgs: QueueItemCreateArgs): Promise<void> {
+    let item = await prisma.queueItem.create(createArgs);
+
+    let client = redisClient.duplicate();
+
+    console.log('Watching current alert key...')
+    return new Promise((resolve, reject) => {
+        client.watch(getCurrentAlertIdKey(item.queueId), async (err, res) => {
+            try{
+                if(err){
+                    throw err;
+                }
+
+                console.log('Getting current alert key...')
+                let currentAlert = await getCurrentAlertId(item.queueId);
+                //Current alert exists, which means that we do not need to notify about the one we just added
+                if(currentAlert){
+                    console.log('Already a current alert, unwatching');
+                    await promisify(client.unwatch.bind(client))();
+                    return resolve();
+                }
+
+                console.log('Getting first incomplete queue item');
+                let nextItem = await getFirstUncompletedQueueItem(item.queueId);
+                //Item is not the "next" item, so we shouldn't bother sending an alert.
+                if(item.id !== nextItem.id){
+                    console.log('Queue item is not the "next" queue item');
+                    await promisify(client.unwatch.bind(client))();
+                    return resolve();
+                }
+
+                let multicommand = client.MULTI()
+                    .SET(getCurrentAlertIdKey(item.queueId), item.id.toFixed(0))
+                    .PUBLISH(getAlertQueueSubKey(item.queueId), JSON.stringify(await getPushAlertMessageToPublish(item)));
+
+                let exec = promisify(multicommand.exec.bind(multicommand));
+                console.log('EXECing multi command');
+                await exec();
+                //Note here: We don't check the result of exec; It may fail, meaning that the set and publish won't run.
+                //This is fine, that means that the current alert has been updated elsewhere.
+                // If it did execute, we correctly published & set the event, so there's nothing more to do.
+                resolve();
+            } catch (e) {
+                reject(e);
+            }finally {
+                client.quit();
+            }
+        });
+    });
 }

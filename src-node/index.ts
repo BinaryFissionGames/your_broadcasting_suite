@@ -18,16 +18,21 @@ import {closeMockServer as closeWebhookMockServer, setUpMockWebhookServer} from 
 import {promisify} from 'util';
 import {prisma} from './model/prisma';
 import {createOrGetUser} from './model/administrator/user';
+import {EXPRESS_SESSION_COOKIE_NAME} from './constants';
+import {closeWebsocketServer, initWebsocketServer} from './websocket-api/alerts';
+import redisClient, {pubSubRedisClient} from './model/redis';
 
 const MySqlStore = mysql_session(session);
 const mySqlStoreOptions = parseMySqlConnString(process.env.DATABASE_URL);
 
 const app = express();
+let sessionStore = new MySqlStore(mySqlStoreOptions);
 const sess: SessionOptions = {
     secret: process.env.SESSION_SECRET,
-    store: new MySqlStore(mySqlStoreOptions),
+    store: sessionStore,
     resave: false,
     saveUninitialized: false,
+    name: EXPRESS_SESSION_COOKIE_NAME
 };
 
 app.use(session(sess)); // Need to set up session middleware
@@ -104,11 +109,7 @@ async function startup() {
                     ca: chain,
                 },
                 app
-            )
-            .listen(Number.parseInt(process.env.HTTPS_PORT), async () => {
-                console.log(`HTTPS listening on port ${process.env.HTTPS_PORT}`);
-                await webhookManager.init();
-            });
+            );
     }
 
     if (process.env.NODE_ENV === 'development') {
@@ -132,11 +133,20 @@ async function startup() {
         });
     }
 
-    server = http
-        .createServer(app)
-        .listen(Number.parseInt(process.env.HTTP_PORT), () =>
-            console.log(`HTTP listening on port ${process.env.HTTP_PORT}`)
-        );
+    server = http.createServer(app);
+
+    await initWebsocketServer(server, httpsServer);
+
+    if(httpsServer){
+        httpsServer.listen(Number.parseInt(process.env.HTTPS_PORT), async () => {
+            console.log(`HTTPS listening on port ${process.env.HTTPS_PORT}`);
+            await webhookManager.init();
+        });
+    }
+
+    server.listen(Number.parseInt(process.env.HTTP_PORT), () =>
+        console.log(`HTTP listening on port ${process.env.HTTP_PORT}`)
+    );
 }
 
 startup().then(() => console.log('Server is started'));
@@ -144,6 +154,14 @@ startup().then(() => console.log('Server is started'));
 process.on('SIGINT', async () => {
     let exitCode = 0;
     const closeServer = promisify(server.close.bind(server));
+    try {
+        await closeWebsocketServer()
+    } catch (e) {
+        console.log('Error while shutting down websocket server');
+        console.log(e);
+        exitCode = 1;
+    }
+
 
     if (httpsServer) {
         const closeHttpsServer = promisify(httpsServer.close.bind(httpsServer));
@@ -185,6 +203,9 @@ process.on('SIGINT', async () => {
         await closeAuthMockServer(true);
         await closeWebhookMockServer(true);
     }
+
+    redisClient.quit();
+    pubSubRedisClient.quit();
 
     process.exit(exitCode);
 });

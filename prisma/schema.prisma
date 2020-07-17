@@ -33,7 +33,7 @@ model Token {
 }
 
 model Webhook {
-    id String @default(autoincrement()) @id
+    id String @id
     type Int
     ownerId Int?
     owner User? @relation(fields: [ownerId], references: [id])
@@ -52,6 +52,7 @@ model Queue {
     userId Int
     user User @relation(fields: [userId], references: [id])
     items QueueItem[]
+    secret String
     createdAt DateTime @default(now())
     @@unique(fields: [userId, queueName])
 }
@@ -77,6 +78,7 @@ model QueueItem {
     bitsNotification BitsNotification? @relation(fields: [bitsNotifId], references: [id])
     donationNotifId Int?
     donationNotification DonationNotification? @relation(fields: [donationNotifId], references: [id])
+    completionDate DateTime?
     createdAt DateTime @default(now())
 }
 

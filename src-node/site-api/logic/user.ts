@@ -1,7 +1,8 @@
+import {prisma} from '../../model/prisma';
+import * as crypto from 'crypto';
+
 //Initializes the user in an IDEMPOTENT fashion; That means that this function can/may be run multiple times,
 //And should not error.
-import {prisma} from '../../model/prisma';
-
 export async function initUserIdempotent(userId: number) {
     //Create default queue
     await prisma.queue.upsert({
@@ -19,6 +20,7 @@ export async function initUserIdempotent(userId: number) {
                     id: userId,
                 },
             },
+            secret: crypto.randomBytes(16).toString('hex')
         },
     });
 }
