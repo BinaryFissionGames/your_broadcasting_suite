@@ -46,7 +46,7 @@
         "redis": "^3.0.2",
         "rsmq-promise": "^1.0.4",
         "twitch-oauth-authorization-code-express": "^2.1.0",
-        "twitch_broadcasting_suite_shared": "git+ssh://git@github.com:Denu8thell/twitch_broadcasting_suite_shared.git",
+        "twitch_broadcasting_suite_shared": "https://github.com/BinaryFissionGames/your_broadcasting_suite_shared.git",
         "uuid": "^8.2.0",
         "websocket": "^1.0.31",
         "@prisma/cli": "^2.2.0"
