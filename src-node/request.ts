@@ -42,8 +42,8 @@ async function refreshToken(oAuthToken: string): Promise<string> {
         } else {
             const info = await oauth.refreshToken(
                 token.refreshToken,
-                process.env.CLIENT_ID,
-                process.env.CLIENT_SECRET,
+                process.env.TWITCH_CLIENT_ID,
+                process.env.TWITCH_CLIENT_SECRET,
                 scopes
             );
 
@@ -67,8 +67,8 @@ async function refreshToken(oAuthToken: string): Promise<string> {
 
 async function requestAppToken(scopes: string[]): Promise<Token> {
     const reqUrl = new URL('https://id.twitch.tv/oauth2/token');
-    reqUrl.searchParams.set('client_id', process.env.CLIENT_ID);
-    reqUrl.searchParams.set('client_secret', process.env.CLIENT_SECRET);
+    reqUrl.searchParams.set('client_id', process.env.TWITCH_CLIENT_ID);
+    reqUrl.searchParams.set('client_secret', process.env.TWITCH_CLIENT_SECRET);
     reqUrl.searchParams.set('grant_type', 'client_credentials');
     if (scopes && scopes.length >= 1) {
         reqUrl.searchParams.set('scope', scopes.join(' '));

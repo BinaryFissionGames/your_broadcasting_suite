@@ -44,7 +44,7 @@ setupTwitchOAuthPath({
         res.redirect(307, process.env.APPLICATION_URL);
         res.end();
     }, // Callback when oauth info is gotten. Session info should be used
-    client_id: process.env.CLIENT_ID, // Twitch client ID
+    client_id: process.env.TWITCH_CLIENT_ID, // Twitch client ID
     client_secret: process.env.CLIENT_SECRET, // Twitch client secret
     force_verify: false, // If true, twitch will always ask the user to verify. If this is false, if the app is already authorized, twitch will redirect immediately back to the redirect uri
     redirect_uri: process.env.REDIRECT_URI, // URI to redirect to (this is the URI on this server, so the path defines the endpoint!)
@@ -58,7 +58,7 @@ const resubScheduler = new BasicWebhookRenewalScheduler();
 const webhookManager: TwitchWebhookManager = new TwitchWebhookManager({
     hostname: process.env.HOST_NAME,
     app: app,
-    client_id: process.env.CLIENT_ID,
+    client_id: process.env.TWITCH_CLIENT_ID,
     base_path: 'webhooks',
     renewalScheduler: resubScheduler,
     persistenceManager: new SequelizeTwitchWebhookPersistenceManager(),
@@ -119,7 +119,7 @@ async function startup() {
 
         try {
             //This'll fail if we try to create the same client again, so for now, we'll ignore that error.
-            await addClient(process.env.CLIENT_ID, process.env.CLIENT_SECRET);
+            await addClient(process.env.TWITCH_CLIENT_ID, process.env.TWITCH_CLIENT_SECRET);
         } catch (e) {} //eslint-disable-line no-empty
 
         await setUpMockWebhookServer({
@@ -150,5 +150,6 @@ async function startup() {
 startup().then(() => console.log('Server is started'));
 
 process.on('SIGINT', shutdownGracefully);
+process.on('SIGTERM', shutdownGracefully);
 
 export {server, httpsServer, webhookManager};
