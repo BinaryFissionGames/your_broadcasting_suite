@@ -1,0 +1,19 @@
+language: node_js
+services:
+    - docker
+node_js:
+    - lts/*
+before_install:
+    - sudo apt-get update
+    - sudo apt-get -y install jq
+    - if [ -n "$DOCKER_PASSWORD" ]; then docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"; fi
+    - docker build -t binaryfissiongames/your-broadcasting-suite .
+
+script:
+    - npm run lint-no-fix
+    - npm run check-pretty
+    - npm run build-test
+    - npm run test
+
+after_success:
+    - if [ -n "$DOCKER_PASSWORD" ]; then chmod 777 ./dockerPush.sh && ./dockerPush.sh; fi
