@@ -16,10 +16,7 @@
     },
     "plugins": ["@typescript-eslint"],
     "rules": {
-        "indent": ["error", 4],
-        "linebreak-style": ["error", "unix"],
-        "quotes": ["error", "single"],
-        "semi": ["error", "always"],
+        "quotes": ["error", "single", {"avoidEscape": true, "allowTemplateLiterals": false}],
         "@typescript-eslint/explicit-module-boundary-types": ["off"],
         "@typescript-eslint/no-explicit-any": ["off"],
         "@typescript-eslint/no-unused-vars": ["off"]
