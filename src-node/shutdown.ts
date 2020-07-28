@@ -1,8 +1,6 @@
 import {promisify} from 'util';
 import {closeWebsocketServer} from './websocket-api/alerts';
 import {prisma} from './model/prisma';
-import {closeMockServer as closeAuthMockServer} from 'twitch-mock-oauth-server/dist/programmatic_api';
-import {closeMockServer as closeWebhookMockServer} from 'twitch-mock-webhook-hub/dist/programmatic_api';
 import redisClient, {pubSubRedisClient} from './model/redis';
 import {httpsServer, server, webhookManager} from './index';
 import {cleanupProcess, shutdownProcessUpkeep} from './process-management/logic';
@@ -59,8 +57,11 @@ export async function shutdownGracefully() {
     }
 
     if (process.env.NODE_ENV === 'development') {
-        await closeAuthMockServer(true);
-        await closeWebhookMockServer(true);
+        const mockAuthServer = await import('twitch-mock-oauth-server/dist/programmatic_api');
+        const mockWebhookHub = await import('twitch-mock-webhook-hub/dist/programmatic_api');
+
+        await mockAuthServer.closeMockServer(true);
+        await mockWebhookHub.closeMockServer(true);
     }
 
     try {

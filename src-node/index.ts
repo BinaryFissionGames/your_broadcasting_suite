@@ -2,7 +2,6 @@ import {setupTwitchOAuthPath} from 'twitch-oauth-authorization-code-express';
 import express = require('express');
 import * as session from 'express-session';
 import mysql_session = require('express-mysql-session');
-
 import {SessionOptions} from 'express-session';
 import {TwitchWebhookManager} from '@binaryfissiongames/twitch-webhooks';
 import {BasicWebhookRenewalScheduler} from '@binaryfissiongames/twitch-webhooks/dist/scheduling';
@@ -13,8 +12,6 @@ import * as fs from 'fs';
 import {SequelizeTwitchWebhookPersistenceManager} from './webhooks';
 import {getOAuthToken, refreshToken} from './request';
 import {parseMySqlConnString} from './model/util';
-import {addClient, setUpMockAuthServer} from 'twitch-mock-oauth-server/dist';
-import {setUpMockWebhookServer} from 'twitch-mock-webhook-hub/dist';
 import {createOrGetUser} from './model/administrator/user';
 import {EXPRESS_SESSION_COOKIE_NAME} from './constants';
 import {initWebsocketServer} from './websocket-api/alerts';
@@ -109,6 +106,9 @@ async function startup() {
     }
 
     if (process.env.NODE_ENV === 'development') {
+        const {addClient, setUpMockAuthServer} = await import('twitch-mock-oauth-server/dist');
+        const {setUpMockWebhookServer} = await import('twitch-mock-webhook-hub/dist');
+
         await setUpMockAuthServer({
             token_url: process.env.MOCK_TOKEN_URL,
             authorize_url: process.env.MOCK_AUTH_URL,
