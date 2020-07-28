@@ -9,6 +9,7 @@ FROM node:12 as dependencies
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm install --no-audit --only=production
+RUN npx prisma generate
 
 FROM node:12-alpine
 ARG SERVER_PORT=3080
