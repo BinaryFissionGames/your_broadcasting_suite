@@ -1,0 +1,16 @@
+const MUTATION_SET_LOGGED_IN = 'setLoggedIn';
+const MUTATION_INCR_LOADING = 'incrLoading';
+const MUTATION_DECR_LOADING = 'decrLoading';
+const MUTATION_TOGGLE_HAMBURGER = 'toggleHamburger';
+const MUTATION_SET_QUEUES = 'setQueues';
+
+const GETTER_LOADING = 'loading';
+
+export {
+    MUTATION_SET_LOGGED_IN,
+    MUTATION_INCR_LOADING,
+    MUTATION_DECR_LOADING,
+    GETTER_LOADING,
+    MUTATION_TOGGLE_HAMBURGER,
+    MUTATION_SET_QUEUES,
+};

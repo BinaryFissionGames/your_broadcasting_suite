@@ -1,0 +1,40 @@
+@use 'navbar';
+@use "loading_overlay";
+@use "transitions";
+@use "colors_and_text";
+@use "flex";
+@use "icon";
+@use "hamburger_menu";
+@use "test_form_styles";
+
+.page {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.mainDisplayArea {
+    @extend %hamburger-transition;
+    position: absolute;
+    display: inline-block;
+    width: calc(100% - #{hamburger_menu.$hamburger-closed-width});
+    height: calc(100% - #{navbar.$navbar-height});
+    padding: 20px 20px 20px 20px;
+    z-index: 0;
+    box-sizing: border-box;
+    overflow-y: scroll;
+}
+
+.mainDisplayAreaHamburgerClosed {
+    transform: translateX(hamburger_menu.$hamburger-closed-translation);
+}
+
+.mainDisplayAreaHamburgerOpen {
+    transform: translateX(hamburger_menu.$hamburger-open-translation);
+}
+
+.router-link-exact-active {
+    background-color: colors_and_text.$secondary-color;
+}

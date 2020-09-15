@@ -1,66 +1,19 @@
 {
-    "name": "your-broadcasting-suite",
-    "version": "0.0.1",
-    "description": "Backend API server for Your Broadcasting Suite",
-    "main": "build-node/index.js",
-    "private": true,
-    "scripts": {
-        "build": "npx prisma generate && tsc",
-        "build-test": "npx prisma generate && tsc --project test.tsconfig.json",
-        "clean": "rm -rf ./build-node || rd /s /q .\\build-node",
-        "test": "npm run build-test && mocha build-node/test/**/*",
-        "run": "node -r dotenv/config build-node/index.js dotenv_config_path=config.env",
-        "start": "node build-node/index.js",
-        "migrate": "knex migrate:latest",
-        "lint": "npx eslint src-node --ext \".ts\" --fix",
-        "lint-no-fix": "npx eslint src-node --ext \".ts\"",
-        "prettify": "npx prettier --write .",
-        "check-pretty": "npx prettier --check .",
-        "pre-commit": "lint-no-fix, check-pretty, test"
-    },
-    "keywords": [],
-    "author": "Brandon Johnson <BinaryFissionGames@gmail.com>",
-    "license": "MIT",
-    "dependencies": {
-        "@binaryfissiongames/twitch-webhooks": "^2.0.1",
-        "@prisma/client": "^2.0.0-beta.5",
-        "@types/bull": "^3.14.0",
-        "@types/cors": "^2.8.6",
-        "@types/express-mysql-session": "^2.1.1",
-        "@types/http-errors": "^1.6.3",
-        "@types/mocha": "^7.0.2",
-        "@types/node": "^13.13.6",
-        "@types/redis": "^2.8.24",
-        "@types/validator": "^13.0.0",
-        "@types/websocket": "^1.0.1",
-        "bull": "^3.16.0",
-        "cors": "^2.8.5",
-        "dotenv": "^8.2.0",
-        "express": "^4.17.1",
-        "express-mysql-session": "^2.1.4",
-        "express-session": "^1.17.1",
-        "got": "^11.1.4",
-        "http-errors": "^1.7.3",
-        "knex": "^0.21.1",
-        "mysql2": "^2.1.0",
-        "redis": "^3.0.2",
-        "rsmq-promise": "^1.0.4",
-        "twitch-oauth-authorization-code-express": "^2.1.0",
-        "twitch_broadcasting_suite_shared": "https://github.com/BinaryFissionGames/your_broadcasting_suite_shared.git",
-        "uuid": "^8.2.0",
-        "websocket": "^1.0.31",
-        "@prisma/cli": "^2.2.0"
-    },
-    "devDependencies": {
-        "@typescript-eslint/eslint-plugin": "^3.5.0",
-        "@typescript-eslint/parser": "^3.5.0",
-        "eslint": "^7.3.1",
-        "eslint-config-prettier": "^6.11.0",
-        "mocha": "^7.2.0",
-        "pre-commit": "^1.2.2",
-        "prettier": "^2.0.5",
-        "twitch-mock-oauth-server": "^0.6.0",
-        "twitch-mock-webhook-hub": "^0.3.8",
-        "typescript": "^3.9.6"
-    }
+  "name": "twitch_broadcasting_suite_root",
+  "version": "1.0.0",
+  "description": "Root of monorepo",
+  "main": "index.js",
+  "scripts": {
+    "test": "exit 0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/BinaryFissionGames/your_broadcasting_suite.git"
+  },
+  "author": "Brandon Johnson",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/BinaryFissionGames/your_broadcasting_suite/issues"
+  },
+  "homepage": "https://github.com/BinaryFissionGames/your_broadcasting_suite#readme"
 }

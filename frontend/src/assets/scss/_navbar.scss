@@ -1,0 +1,42 @@
+@use "colors_and_text";
+
+$navbar-height: 50px;
+
+.navbar {
+    min-height: $navbar-height;
+    background-color: colors_and_text.$primary-color;
+    box-sizing: border-box;
+    padding: 0 10px 0 10px;
+    width: 100%;
+    justify-content: space-between;
+    align-items: center;
+    top: 0;
+}
+
+.navbar-buttons {
+}
+
+.navbar-buttons > a:link {
+    text-decoration: none;
+    color: colors_and_text.$text-color;
+}
+
+.navbar-buttons > a:visited {
+    text-decoration: none;
+    color: colors_and_text.$text-color;
+}
+
+.navbar-login {
+    padding: 5px 10px 5px 10px;
+    margin: 0;
+    transition: background-color 500ms linear;
+    border-radius: 15px;
+}
+
+.navbar-login:hover {
+    background-color: colors_and_text.$secondary-color;
+}
+
+.navbar-name {
+    display: inline-block;
+}

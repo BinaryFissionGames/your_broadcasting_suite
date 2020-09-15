@@ -1,0 +1,53 @@
+@use "colors_and_text";
+
+$hamburger-width: 300px;
+$hamburger-closed-width: 40px;
+$hamburger-closed-translation: -($hamburger-width - $hamburger-closed-width);
+$hamburger-open-translation: 0;
+
+%hamburger-transition {
+    transition: transform 0.5s ease-out;
+}
+
+.hamburgerMenu {
+    @extend %hamburger-transition;
+    display: inline-block;
+    width: $hamburger-width;
+    height: 100%;
+    background-color: colors_and_text.$tertiary-color;
+    z-index: 1;
+}
+
+.hamburgerMenuClosed {
+    transform: translateX($hamburger-closed-translation);
+}
+
+.hamburgerMenuOpen {
+    transform: translateX($hamburger-open-translation);
+}
+
+.hamburgerList {
+    flex-direction: column;
+    flex-wrap: nowrap;
+    height: 100%;
+    width: 100%;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+.hamburgerListItem {
+    display: inline-block;
+    width: 100%;
+    padding: 10px 10px 10px 25px;
+    text-align: left;
+    box-sizing: border-box;
+    font-size: 18px;
+    transition: background-color 0.5s ease-in-out;
+    text-decoration: none;
+}
+
+.hamburgerListItem:hover {
+    background-color: colors_and_text.$secondary-color;
+    cursor: pointer;
+    text-decoration: none;
+}

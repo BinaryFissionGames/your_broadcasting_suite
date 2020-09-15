@@ -1,0 +1,15 @@
+{
+  "name": "twitch_broadcasting_suite_shared",
+  "version": "0.0.1",
+  "description": "Shared code for my broadcasting suite",
+  "main": "dist/index.js",
+  "private": true,
+  "scripts": {
+    "clean": "rm -rf ./dist || rd /s /q .\\dist",
+    "build": "tsc"
+  },
+  "keywords": [],
+  "author": "Brandon Johnson <BinaryFissionGames@gmail.com>",
+  "repository": "https://github.com/Denu8thell/twitch_broadcasting_suite_client.git",
+  "license": "MIT"
+}

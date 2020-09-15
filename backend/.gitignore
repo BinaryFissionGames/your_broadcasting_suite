@@ -1,0 +1,4 @@
+database/
+build-node/
+node_modules/
+config.env
