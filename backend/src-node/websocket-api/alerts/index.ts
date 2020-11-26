@@ -11,7 +11,7 @@ import {
     WEBSOCKET_ALERTS_QUEUE_QUERY_PARAMETER,
     WEBSOCKET_PROTOCOL_ALERT,
     WEBSOCKET_PROTOCOLS,
-} from 'twitch_broadcasting_suite_shared/dist';
+} from 'twitch_broadcasting_suite_shared';
 import {AlertSocket} from './types/websocket_types';
 import {emitToAllForQueue, getCurrentQueueItem, isCodeValidForQueue, sendAlertToClient} from './logic/logic';
 import {

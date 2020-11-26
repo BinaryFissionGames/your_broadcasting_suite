@@ -1,4 +1,4 @@
-import {Queue} from 'twitch_broadcasting_suite_shared/dist';
+import {Queue} from 'twitch_broadcasting_suite_shared';
 
 type State = {
     loggedIn: boolean;

@@ -1,0 +1,83 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: dev-ca-key-pair-{{ .Release.Name }}
+data:
+  tls.crt: {{ .Values.devCaCertb64 }}
+  tls.key: {{ .Values.devCaCertKeyb64 }}
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: dev-ca-issuer-{{ .Release.Name }}
+spec:
+  ca:
+    secretName: dev-ca-key-pair-{{ .Release.Name }}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: cert-{{ .Release.Name }}-client
+spec:
+  secretName: cert-{{ .Release.Name }}-client-secret
+  duration: 2160h
+  renewBefore: 360h
+  subject:
+    organizations:
+      - YourBroadcastingSuite
+  commonName: www.yourbroadcastingsuite.com
+  isCA: false
+  privateKey:
+    size: 2048
+    algorithm: RSA
+    encoding: PKCS1
+  usages:
+    - server auth
+  dnsNames:
+    {{- range .Values.extraClientHostNames }}
+    - {{ . }}
+    {{- end }}
+    {{- range .Values.extraClientDnsNames }}
+    - {{ . }}
+    {{- end }}
+    - {{ .Values.clientHostName }}
+
+  issuerRef:
+    name: dev-ca-issuer-{{ .Release.Name }}
+    kind: Issuer
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: cert-{{ .Release.Name }}-api
+spec:
+  secretName: cert-{{ .Release.Name }}-api-secret
+  duration: 2160h
+  renewBefore: 360h
+  subject:
+    organizations:
+      - YourBroadcastingSuite
+  commonName: api.yourbroadcastingsuite.com
+  isCA: false
+  privateKey:
+    size: 2048
+    algorithm: RSA
+    encoding: PKCS1
+  usages:
+    - server auth
+  dnsNames:
+    {{- range .Values.extraApiHostNames }}
+    - {{ . }}
+    {{- end }}
+    - {{ .Values.apiHostName }}
+    - {{ .Values.mockAuthHostName }}
+    {{- range .Values.extraMockAuthHostNames }}
+    - {{ . }}
+    {{- end }}
+    - {{ .Values.mockWebhookHostName }}
+    {{- range .Values.extraMockWebhookHostNames }}
+    - {{ . }}
+    {{- end }}
+  issuerRef:
+    name: dev-ca-issuer-{{ .Release.Name }}
+    kind: Issuer

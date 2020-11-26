@@ -29,7 +29,7 @@ import Vue from 'vue';
 import TransparentLoadingOverlay from '../../TransparentLoadingOverlay';
 import {addTestFollowRequest, getAllQueuesCached} from '../../../api/api';
 import {mapState} from 'vuex';
-import {DEFAULT_QUEUE_NAME} from 'twitch_broadcasting_suite_shared/dist';
+import {DEFAULT_QUEUE_NAME} from 'twitch_broadcasting_suite_shared';
 
 export default Vue.extend({
     name: 'AddTestFollowQueueItemComponent',

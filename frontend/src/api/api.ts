@@ -22,7 +22,7 @@ import {
     LogoutResponse,
     Queue,
     VerifyLoggedInResponse,
-} from 'twitch_broadcasting_suite_shared/dist';
+} from 'twitch_broadcasting_suite_shared';
 
 export async function getOrSetLoggedIn(): Promise<boolean> {
     if (store.state.loggedIn) {

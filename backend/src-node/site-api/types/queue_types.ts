@@ -6,7 +6,7 @@ import {
     AddSubscriptionQueueItemRequest,
     AddYoutubeQueueItemRequest,
     QueueItemTypes,
-} from 'twitch_broadcasting_suite_shared/dist';
+} from 'twitch_broadcasting_suite_shared';
 
 export type CreateQueueItemData = {
     queueId: number;

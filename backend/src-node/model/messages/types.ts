@@ -1,5 +1,5 @@
-import {hasAndIsOfType} from 'twitch_broadcasting_suite_shared/dist/types/helper';
-import {GenericAlert, isGenericAlert} from 'twitch_broadcasting_suite_shared/dist';
+import {hasAndIsOfType} from 'twitch_broadcasting_suite_shared';
+import {GenericAlert, isGenericAlert} from 'twitch_broadcasting_suite_shared';
 
 export enum AlertMessageType {
     EMIT_NEXT_ALERT,

@@ -11,7 +11,7 @@ import {
     QueueItemTypes,
     SendAlertMessage,
     TextAlert,
-} from 'twitch_broadcasting_suite_shared/dist';
+} from 'twitch_broadcasting_suite_shared';
 import * as Knex from 'knex';
 import {knex} from '../../../model/knex';
 

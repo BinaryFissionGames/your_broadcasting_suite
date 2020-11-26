@@ -3,7 +3,7 @@ import {addUserRoutes} from './user';
 import {addAuthRoutes} from './auth';
 import * as cors from 'cors';
 import {isGenericError} from '../errors/common';
-import {GenericResponse} from 'twitch_broadcasting_suite_shared/dist';
+import {GenericResponse} from 'twitch_broadcasting_suite_shared';
 import * as crypto from 'crypto';
 import * as bodyParser from 'body-parser';
 

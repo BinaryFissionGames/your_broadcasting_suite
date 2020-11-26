@@ -7,5 +7,5 @@ backend/.idea
 frontend/.idea
 shared/.idea
 dockerPush.sh
-frontenddist
+frontend/dist
 backend/build-node

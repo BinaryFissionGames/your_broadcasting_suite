@@ -8,13 +8,13 @@
         "build-test": "webpack",
         "build-production": "webpack --config webpack.config.production.js",
         "clean": "rm -rf ./dist || rd /s /q .\\dist",
-        "run-dev": "webpack-dev-server --open",
+        "run-dev": "webpack-dev-server --open --localIp --host 0.0.0.0",
         "test": "exit 0",
         "lint": "npx eslint src --ext \".vue,.ts\" --fix",
         "lint-no-fix": "npx eslint src --ext \".vue,.ts\"",
         "prettify": "npx prettier --write .",
         "check-pretty": "npx prettier --check .",
-        "pre-commit": "lint, check-pretty, test"
+        "check": "npm run lint && npm run check-pretty && npm run test"
     },
     "keywords": [],
     "author": "Brandon Johnson <BinaryFissionGames@gmail.com>",
@@ -33,7 +33,6 @@
         "eslint-config-prettier": "^6.11.0",
         "eslint-plugin-vue": "^7.0.0-alpha.8",
         "file-loader": "^6.0.0",
-        "pre-commit": "^1.2.2",
         "prettier": "2.0.5",
         "sass": "^1.26.9",
         "sass-loader": "^8.0.2",

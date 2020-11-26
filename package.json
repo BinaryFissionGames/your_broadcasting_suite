@@ -4,7 +4,9 @@
   "description": "Root of monorepo",
   "main": "index.js",
   "scripts": {
-    "test": "exit 0"
+    "test": "exit 0",
+    "check-commit": "pnpm run -r check",
+    "pre-commit": "check-commit"
   },
   "repository": {
     "type": "git",
@@ -15,5 +17,8 @@
   "bugs": {
     "url": "https://github.com/BinaryFissionGames/your_broadcasting_suite/issues"
   },
-  "homepage": "https://github.com/BinaryFissionGames/your_broadcasting_suite#readme"
+  "homepage": "https://github.com/BinaryFissionGames/your_broadcasting_suite#readme",
+  "dependencies": {
+    "pre-commit": "^1.2.2"
+  }
 }

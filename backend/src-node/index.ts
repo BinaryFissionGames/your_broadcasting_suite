@@ -48,6 +48,10 @@ setupTwitchOAuthPath({
     scopes: ['channel:read:subscriptions', 'user:read:email', 'moderation:read'], // List of scopes your app is requesting access to
     token_url: process.env.NODE_ENV == 'development' ? process.env.MOCK_TOKEN_URL : undefined,
     authorize_url: process.env.NODE_ENV == 'development' ? process.env.MOCK_AUTH_URL : undefined,
+    errorHandler(e){
+        console.error(e);
+        return e.message;
+    }
 });
 
 const resubScheduler = new BasicWebhookRenewalScheduler();
@@ -74,37 +78,6 @@ setupRoutes(app);
 let server: http.Server;
 let httpsServer: https.Server;
 async function startup() {
-    let certKey, cert, chain;
-
-    if (fs.existsSync(process.env.CERT_PATH)) {
-        cert = fs.readFileSync(process.env.CERT_PATH);
-    } else {
-        console.log(`File ${process.env.CERT_PATH} does not exist.`);
-    }
-
-    if (fs.existsSync(process.env.CERT_CHAIN_PATH)) {
-        chain = fs.readFileSync(process.env.CERT_CHAIN_PATH);
-    } else {
-        console.log(`File ${process.env.CERT_CHAIN_PATH} does not exist.`);
-    }
-
-    if (fs.existsSync(process.env.CERT_KEY_PATH)) {
-        certKey = fs.readFileSync(process.env.CERT_KEY_PATH);
-    } else {
-        console.log(`File ${process.env.CERT_KEY_PATH} does not exist.`);
-    }
-
-    if (certKey && cert && chain) {
-        httpsServer = https.createServer(
-            {
-                key: certKey,
-                cert: cert,
-                ca: chain,
-            },
-            app
-        );
-    }
-
     if (process.env.NODE_ENV === 'development') {
         const {addClient, setUpMockAuthServer} = await import('twitch-mock-oauth-server/dist');
         const {setUpMockWebhookServer} = await import('twitch-mock-webhook-hub/dist');
@@ -147,9 +120,19 @@ async function startup() {
     );
 }
 
-startup().then(() => console.log('Server is started'));
+startup().then(() => console.log('Server is started '));
 
 process.on('SIGINT', shutdownGracefully);
 process.on('SIGTERM', shutdownGracefully);
+process.on('unhandledRejection', async (e, p) => {
+    console.error('Unhandled promise rejection caught, ', p);
+    console.error('Shutting down process....');
+    await shutdownGracefully();
+});
+process.on('uncaughtException', async (e) => {
+    console.error('Exception was uncaught, ', e);
+    console.error('Shutting down process....');
+    await shutdownGracefully();
+});
 
 export {server, httpsServer, webhookManager};

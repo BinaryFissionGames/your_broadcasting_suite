@@ -20,6 +20,7 @@ import {
 import {getOrSetLoggedIn} from './api/api';
 import {State} from './vuex/types';
 import {doWithMinTime} from './util/common';
+import {API_PATH_PREFIX} from 'twitch_broadcasting_suite_shared';
 
 console.log('Creating Vue instance...');
 Vue.use(VueRouter);
@@ -86,14 +87,13 @@ new Vue({
 
 console.log('Created Vue instance.');
 
-async function load() {
+async function load(): Promise<void> {
     let loggedIn;
     try {
         loggedIn = await doWithMinTime(2000, getOrSetLoggedIn());
     } catch (e) {
-        //TODO - better error handling
         console.log(e);
-        return;
+        return load(); // Try again to load if we fail here (e.g. cannot contact API server)
     }
 
     if (loggedIn && router.currentRoute.path !== '/dashboard') {

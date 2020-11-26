@@ -10,19 +10,21 @@
         "clean": "rm -rf ./build-node || rd /s /q .\\build-node",
         "test": "npm run build-test && mocha build-node/test/**/*",
         "run": "node -r dotenv/config build-node/index.js dotenv_config_path=config.env",
-        "start": "node build-node/index.js",
+        "run-dev": "ts-node-dev --respawn --transpile-only -- src-node/index.ts",
+        "start": "node --unhandled-rejections=strict build-node/index.js",
         "migrate": "knex migrate:latest",
         "lint": "npx eslint src-node --ext \".ts\" --fix",
         "lint-no-fix": "npx eslint src-node --ext \".ts\"",
         "prettify": "npx prettier --write .",
         "check-pretty": "npx prettier --check .",
-        "pre-commit": "lint-no-fix, check-pretty, test"
+        "check": "npm run lint && npm run check-pretty && npm run test"
     },
     "keywords": [],
     "author": "Brandon Johnson <BinaryFissionGames@gmail.com>",
     "license": "MIT",
     "dependencies": {
         "@binaryfissiongames/twitch-webhooks": "^2.0.1",
+        "@prisma/cli": "^2.2.0",
         "@prisma/client": "^2.0.0-beta.5",
         "@types/bull": "^3.14.0",
         "@types/cors": "^2.8.6",
@@ -45,11 +47,10 @@
         "mysql2": "^2.1.0",
         "redis": "^3.0.2",
         "rsmq-promise": "^1.0.4",
-        "twitch-oauth-authorization-code-express": "^2.1.0",
+        "twitch-oauth-authorization-code-express": "^2.2.0",
         "twitch_broadcasting_suite_shared": "file:../shared",
         "uuid": "^8.2.0",
-        "websocket": "^1.0.31",
-        "@prisma/cli": "^2.2.0"
+        "websocket": "^1.0.31"
     },
     "devDependencies": {
         "@typescript-eslint/eslint-plugin": "^3.5.0",
@@ -57,8 +58,8 @@
         "eslint": "^7.3.1",
         "eslint-config-prettier": "^6.11.0",
         "mocha": "^7.2.0",
-        "pre-commit": "^1.2.2",
         "prettier": "^2.0.5",
+        "ts-node-dev": "^1.0.0-pre.62",
         "twitch-mock-oauth-server": "^0.6.0",
         "twitch-mock-webhook-hub": "^0.3.8",
         "typescript": "^3.9.6"

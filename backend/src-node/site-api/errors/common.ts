@@ -1,5 +1,5 @@
 import * as crypto from 'crypto';
-import {hasAndIsOfType} from 'twitch_broadcasting_suite_shared/dist/types/helper';
+import {hasAndIsOfType} from 'twitch_broadcasting_suite_shared';
 
 export class GenericError extends Error {
     public userFacingMessage: string;

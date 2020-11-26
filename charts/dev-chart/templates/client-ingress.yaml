@@ -1,0 +1,21 @@
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: client-ingress-{{ .Release.Name }}
+  labels:
+    app: YourBroadcastingSuite
+spec:
+  tls:
+    - hosts:
+        - {{ .Values.clientHostName }}
+        {{- range .Values.extraClientHostNames }}
+        - {{ . }}
+        {{- end }}
+      secretName: cert-{{ .Release.Name }}-client-secret
+  rules:
+    - host: {{ .Values.clientHostName }}
+      http:
+        paths:
+          - backend:
+              serviceName: client-server-service-{{ .Release.Name }}
+              servicePort: 443

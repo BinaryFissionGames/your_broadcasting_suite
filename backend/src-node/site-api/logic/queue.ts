@@ -8,7 +8,7 @@ import {
     Queue,
     QueueItem,
     QueueItemTypes,
-} from 'twitch_broadcasting_suite_shared/dist';
+} from 'twitch_broadcasting_suite_shared';
 import {prisma} from '../../model/prisma';
 import {formatCentsAsUSD} from './util';
 import {QueueItemCreateArgs} from '@prisma/client';

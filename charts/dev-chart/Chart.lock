@@ -1,0 +1,12 @@
+dependencies:
+- name: redis
+  repository: https://charts.bitnami.com/bitnami
+  version: ~10.7.11
+- name: mysql-operator
+  repository: https://presslabs.github.io/charts
+  version: ~0.4.0
+- name: cert-manager
+  repository: https://charts.jetstack.io
+  version: v1.0.1
+digest: sha256:dfa9e75aff4ac74e0300466f782d7decacf0811e6a5e72b2b6a15516202bbf0d
+generated: "2020-09-16T08:46:26.8883744-04:00"

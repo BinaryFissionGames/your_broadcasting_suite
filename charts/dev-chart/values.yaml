@@ -1,0 +1,45 @@
+env: development # production or development
+
+apiServerImage: your-broadcasting-suite-dev:0.0.1
+clientServerImage: your-broadcasting-suite-client-dev:0.0.1
+
+apiPortHttp: 3080
+apiPortHttps: 3443
+sessionSecret: secret
+
+twitchClientId: id
+twitchClientSecret: secret
+
+mysqlServiceName: mysql
+mysqlUser: admin
+mysqlPassword: password
+mysqlDatabase: your_broadcasting_suite
+mysqlHost: 192.168.0.1
+mysqlPort: 3306
+mysqlRootPassword: rootpassword
+
+redisHostSuffix: -redis-master
+redisDatabase: 0
+
+# Certs used for dev; These certs are used to sign https certificates for both the client and backend server in dev
+# environments. In production, let's encrypt certificates are used and obtained through ACME challenges. These fields
+# should be base64 encoded.
+devCaCertb64: cert
+devCaCertKeyb64: key
+
+apiHostName: "api.yourbroadcastingsuite.com"
+extraApiHostNames: []
+mockAuthHostName: "auth.yourbroadcastingsuite.com"
+extraMockAuthHostNames: []
+mockWebhookHostName: "webhook.yourbroadcastingsuite.com"
+extraMockWebhookHostNames: []
+clientHostName: "www.yourbroadcastingsuite.com"
+extraClientHostNames:
+  - "yourbroadcastingsuite.com"
+extraClientDnsNames: []
+redis:
+  redisPort: 6379
+  password: password
+
+cert-manager:
+  installCRDs: false # Must be installed manually; See https://cert-manager.io/docs/installation/kubernetes/

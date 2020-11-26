@@ -20,7 +20,7 @@ import {
     isAddDonationQueueItemRequest,
     GetAllQueuesResponse,
     API_PATH_GET_QUEUES_FULL_PATH,
-} from 'twitch_broadcasting_suite_shared/dist';
+} from 'twitch_broadcasting_suite_shared';
 import {NeedsReAuthError, QueueNotFound} from '../errors/user_errors';
 import {
     createBitsNotification,
@@ -34,7 +34,7 @@ import {
     queueBelongsToUser,
 } from '../logic/queue';
 import {InvalidPayloadError} from '../errors/common';
-import {isAddFollowQueueItemRequest} from 'twitch_broadcasting_suite_shared/dist/types/api/queue';
+import {isAddFollowQueueItemRequest} from 'twitch_broadcasting_suite_shared';
 
 function addUserRoutes(app: Application) {
     app.use(API_PATH_PREFIX + API_PATH_CURRENT_USER_PREFIX, async function (req, res, next) {

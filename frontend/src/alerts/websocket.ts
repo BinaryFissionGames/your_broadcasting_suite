@@ -11,7 +11,7 @@ import {
     WEBSOCKET_ALERTS_QUEUE_CODE_QUERY_PARAMETER,
     WEBSOCKET_ALERTS_QUEUE_QUERY_PARAMETER,
     WEBSOCKET_PROTOCOL_ALERT,
-} from 'twitch_broadcasting_suite_shared/dist';
+} from 'twitch_broadcasting_suite_shared';
 import {wait} from '../util/common';
 
 const MAX_SAVED_ALERT_IDS = 10;

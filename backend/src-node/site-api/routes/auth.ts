@@ -5,7 +5,7 @@ import {
     VerifyLoggedInResponse,
     API_PATH_VERIFY_LOGGED_IN_FULL_PATH,
     API_PATH_LOG_OUT_FULL_PATH,
-} from 'twitch_broadcasting_suite_shared/dist';
+} from 'twitch_broadcasting_suite_shared';
 import {initUserIdempotent} from '../logic/user';
 
 function addAuthRoutes(app: Application) {
