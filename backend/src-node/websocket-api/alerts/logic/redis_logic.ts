@@ -14,6 +14,7 @@ import {AlertSocket} from '../types/websocket_types';
 import {knex} from '../../../model/knex';
 import {AlertMessageType, EmitNextAlertMessage} from '../../../model/messages/types';
 import {QueueItem} from '@prisma/client';
+import {logger} from '../../../logging';
 
 export const queueIdToConnectionsMap = new Map<number, connection[]>();
 
@@ -128,8 +129,9 @@ export async function checkAndPublishNextAlert(queueId: number): Promise<boolean
     const scard = promisify(client.scard.bind(client));
     const unwatch = promisify(client.unwatch.bind(client));
     const get = promisify(client.get.bind(client));
-
+    const methodLogger = logger.child({file: __filename, method: 'checkAndPublishNextAlert'});
     return new Promise((resolve, reject) => {
+
         client.watch(getAlertClientSetCompletedKey(queueId), getAlertClientSetKey(queueId), async (err, _res) => {
             try {
                 if (err) {
@@ -142,7 +144,7 @@ export async function checkAndPublishNextAlert(queueId: number): Promise<boolean
                 );
 
                 if (setDifference.length >= 1) {
-                    console.debug('Set difference is gt 1');
+                    methodLogger.debug('Set difference is gt 1');
                     return unwatch();
                 }
 
@@ -159,9 +161,9 @@ export async function checkAndPublishNextAlert(queueId: number): Promise<boolean
                 const trx = await knex.transaction();
 
                 try {
-                    console.log('marking queue item as done');
+                    methodLogger.debug('marking queue item as done');
                     await markQueueItemAsDone(alertId, trx);
-                    console.log('Getting next item');
+                    methodLogger.debug('Getting next item');
                     const nextQueueItem = await getFirstUncompletedQueueItem(queueId, trx);
 
                     let multiCommand = client.MULTI().DEL(getAlertClientSetCompletedKey(queueId));
@@ -181,11 +183,11 @@ export async function checkAndPublishNextAlert(queueId: number): Promise<boolean
                     if (execResult === null) {
                         //Couldn't EXEC redis transaction, rollback, let whoever changed our watched keys deal w/ this.
                         //Possible TODO: don't use transactions, use some more performant method. (e.g. make get first uncompleted queue item ignore current queue item)
-                        console.log('Exec failed.');
+                        methodLogger.debug('Exec failed.');
                         await trx.rollback();
                         return resolve(false);
                     } else {
-                        console.log('Exec worked!');
+                        methodLogger.debug('Exec worked!');
                         await trx.commit();
                         return resolve(true);
                     }

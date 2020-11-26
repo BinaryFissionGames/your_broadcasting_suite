@@ -10,6 +10,7 @@ import redisClient from '../model/redis';
 import {checkAndPublishNextAlert} from '../websocket-api/alerts/logic/redis_logic';
 import {promisify} from 'util';
 import {getAlertClientSetKey} from '../websocket-api/alerts/logic/redis_keys';
+import {logger} from '../logging';
 
 const processCleanupWorkerQueue = new Bull(PROCESS_CLEANUP_QUEUE_NAME, process.env.REDIS_URL, {
     defaultJobOptions: {
@@ -23,8 +24,8 @@ const processDisconnectWorkerQueue = new Bull(WEBSOCKET_CONNECTION_CLEANUP_QUEUE
     },
 });
 
-processCleanupWorkerQueue.on('stalled', console.error);
-processDisconnectWorkerQueue.on('stalled', console.error);
+processCleanupWorkerQueue.on('stalled', logger.error);
+processDisconnectWorkerQueue.on('stalled', logger.error);
 
 processDisconnectWorkerQueue.process(async (job: Bull.Job) => {
     const message: RemoveConnectionIdMessage = JSON.parse(job.data);

@@ -1,6 +1,6 @@
 exports.up = function (knex) {
     return knex.schema.table('Queue', function (table) {
-        table.string('secret', 20).notNullable().defaultTo('defaultsecret');
+        table.string('secret', 32).notNullable().defaultTo('defaultsecret');
     });
 };
 

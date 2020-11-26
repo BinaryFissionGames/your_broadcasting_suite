@@ -19,7 +19,7 @@ import {
 } from './vuex/constants';
 import {getOrSetLoggedIn} from './api/api';
 import {State} from './vuex/types';
-import {doWithMinTime} from './util/common';
+import {doWithMinTime, wait} from './util/common';
 import {API_PATH_PREFIX} from 'twitch_broadcasting_suite_shared';
 
 console.log('Creating Vue instance...');
@@ -93,6 +93,7 @@ async function load(): Promise<void> {
         loggedIn = await doWithMinTime(2000, getOrSetLoggedIn());
     } catch (e) {
         console.log(e);
+        await wait(1000);
         return load(); // Try again to load if we fail here (e.g. cannot contact API server)
     }
 

@@ -11,6 +11,7 @@ import {
 } from '../websocket-api/alerts/logic/redis_keys';
 import {shutdownGracefully} from '../shutdown';
 import {getProcessCleanupJobIdKey} from './redis_keys';
+import {logger} from '../logging';
 
 let currentJob: Bull.Job;
 let upkeepInterval: NodeJS.Timeout;
@@ -18,6 +19,7 @@ let upkeepInterval: NodeJS.Timeout;
 export async function initProcessUpkeep(processId: string) {
     const get = promisify(redisClient.get.bind(redisClient));
     const set = promisify(redisClient.set.bind(redisClient));
+    const methodLogger = logger.child({file: __filename, method: 'initProcessUpkeep'});
 
     const oldJobId: string = await get(getProcessCleanupJobIdKey(processId));
     if (oldJobId) {
@@ -26,9 +28,9 @@ export async function initProcessUpkeep(processId: string) {
             await oldJob.takeLock();
             if (await oldJob.isCompleted()) {
                 //process was cleaned up by another process
-                console.warn(`Process ${processId} was cleaned up by another process!`);
+                methodLogger.warn(`Process ${processId} was cleaned up by another process!`);
             } else {
-                console.warn(`Process ${processId} exited unsuccessfully last time, cleaning up old process...`);
+                methodLogger.warn(`Process ${processId} exited unsuccessfully last time, cleaning up old process...`);
                 await cleanupProcess(processId);
             }
             await oldJob.discard();
@@ -44,7 +46,7 @@ export async function initProcessUpkeep(processId: string) {
             if (currentJob) {
                 await currentJob.takeLock();
                 if (await currentJob.isCompleted()) {
-                    console.error('Failed to keep up, and process was cleaned up! Closing down process...');
+                    methodLogger.error('Failed to keep up, and process was cleaned up! Closing down process...');
                     currentJob = null;
                     await shutdownGracefully();
                 } else {
@@ -55,19 +57,22 @@ export async function initProcessUpkeep(processId: string) {
                 }
             }
         } catch (e) {
-            console.error(e);
+            methodLogger.error(e);
         }
     }, PROCESS_STALL_TIMER_UPKEEP_TIME_S * 1000);
 
     processCleanupWorkerQueue.process(async (job: Bull.Job) => {
         const cleanupProcessId = job.data;
-        console.error('Got cleanup job for process ' + cleanupProcessId + ', process must be dead!');
+        methodLogger.error('Got cleanup job for process ' + cleanupProcessId + ', process must be dead!');
         await cleanupProcess(cleanupProcessId);
     });
 }
 
 export async function shutdownProcessUpkeep() {
+    const methodLogger = logger.child({file: __filename, method: 'shutdownProcessUpkeep'});
+    methodLogger.info('shutting down process upkeep')
     if (currentJob) {
+        methodLogger.info('current upkeep job is being removed')
         await currentJob.remove();
     }
     clearInterval(upkeepInterval);
@@ -82,7 +87,7 @@ export async function cleanupProcess(processId: string) {
     //Remove straggling connections from their associated keys
     let currentQueueId: number = Number.parseInt(await spop(getProcessQueuesKey(processId)));
     while (currentQueueId) {
-        //Remove clients "connected" to the process form the complete set, and the connected client set
+        //Remove clients "connected" to the process from the complete set, and the connected client set
         const multiCommand = client
             .MULTI()
             .sdiffstore(

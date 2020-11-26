@@ -5,18 +5,19 @@ import redisClient, {pubSubRedisClient} from './model/redis';
 import {httpsServer, server, webhookManager} from './index';
 import {cleanupProcess, shutdownProcessUpkeep} from './process-management/logic';
 import {shutdownQueueWorkers} from './process-management/workerQueue';
+import {logger} from './logging';
 
 export async function shutdownGracefully() {
     let exitCode = 0;
     const closeServer = promisify(server.close.bind(server));
-
-    console.log('Gracefully shutting down...');
+    const methodLogger = logger.child({file: __filename, method: 'shutdownGracefully'})
+    methodLogger.info('Gracefully shutting down...');
 
     try {
         await closeWebsocketServer();
     } catch (e) {
-        console.log('Error while shutting down websocket server');
-        console.log(e);
+        methodLogger.error('Error while shutting down websocket server');
+        methodLogger.error(e);
         exitCode = 1;
     }
 
@@ -26,8 +27,8 @@ export async function shutdownGracefully() {
         try {
             await closeHttpsServer();
         } catch (e) {
-            console.log('Error while shutting down https server');
-            console.log(e);
+            methodLogger.error('Error while shutting down https server');
+            methodLogger.error(e);
             exitCode = 1;
         }
     }
@@ -35,24 +36,24 @@ export async function shutdownGracefully() {
     try {
         await closeServer();
     } catch (e) {
-        console.log('Error while shutting down http server');
-        console.log(e);
+        methodLogger.error('Error while shutting down http server');
+        methodLogger.error(e);
         exitCode = 1;
     }
 
     try {
         await webhookManager.destroy();
     } catch (e) {
-        console.log('Error while destroying webhook manager');
-        console.log(e);
+        methodLogger.error('Error while destroying webhook manager');
+        methodLogger.error(e);
         exitCode = 1;
     }
 
     try {
         await prisma.disconnect();
     } catch (e) {
-        console.log('Error while shutting down database connection');
-        console.log(e);
+        methodLogger.error('Error while shutting down database connection');
+        methodLogger.error(e);
         exitCode = 1;
     }
 
@@ -68,16 +69,16 @@ export async function shutdownGracefully() {
         await cleanupProcess(process.env.PROCESS_ID);
         await shutdownProcessUpkeep();
     } catch (e) {
-        console.log('Error while cleaning up process');
-        console.log(e);
+        methodLogger.error('Error while cleaning up process');
+        methodLogger.error(e);
         exitCode = 1;
     }
 
     try {
         await shutdownQueueWorkers();
     } catch (e) {
-        console.log('Error while shutting down queue workers');
-        console.log(e);
+        methodLogger.error('Error while shutting down queue workers');
+        methodLogger.error(e);
         exitCode = 1;
     }
 

@@ -26,6 +26,7 @@ import {alertQueueSubKeyRegex} from './logic/redis_keys';
 import {pubSubRedisClient} from '../../model/redis';
 import {processDisconnectWorkerQueue} from '../../process-management/workerQueue';
 import {RemoveConnectionIdMessage} from '../../process-management/types';
+import {logger} from '../../logging';
 
 let websockServerHttp: WebsocketServer | undefined;
 let websockServerHttps: WebsocketServer | undefined;
@@ -71,6 +72,7 @@ export async function closeWebsocketServer() {
 }
 
 async function requestHandler(webSocketRequest: request) {
+    const methodLogger = logger.child({file: __filename, method: 'requestHandler'});
     try {
         let validProtocol: string | undefined;
         for (const protocol of webSocketRequest.requestedProtocols) {
@@ -86,7 +88,7 @@ async function requestHandler(webSocketRequest: request) {
 
                 const url = new URL(webSocketRequest.resourceURL.href, 'http://localhost');
                 if (url.pathname !== WEBSOCKET_ALERTS_PATH) {
-                    console.error('Resource URL path = ' + webSocketRequest.resourceURL.path);
+                    methodLogger.error('Resource URL path = ' + webSocketRequest.resourceURL.path);
                     return webSocketRequest.reject(
                         400,
                         `Path must be ${WEBSOCKET_ALERTS_PATH} from protocol ${WEBSOCKET_PROTOCOL_ALERT}`
@@ -98,7 +100,7 @@ async function requestHandler(webSocketRequest: request) {
                 const codeParam = qParams.get(WEBSOCKET_ALERTS_QUEUE_CODE_QUERY_PARAMETER);
 
                 if (!queueParam || !codeParam) {
-                    console.log('Missing queue param or code param');
+                    methodLogger.warn('Missing queue param or code param');
                     return webSocketRequest.reject(
                         400,
                         `Path must contain ${WEBSOCKET_ALERTS_QUEUE_QUERY_PARAMETER} and ${WEBSOCKET_ALERTS_QUEUE_CODE_QUERY_PARAMETER} query parameters`
@@ -106,7 +108,7 @@ async function requestHandler(webSocketRequest: request) {
                 }
 
                 if (!(await isCodeValidForQueue(codeParam, Number.parseInt(queueParam)))) {
-                    console.log(`Code is not correct for queue, code: ${codeParam}, queue: ${queueParam}`);
+                    methodLogger.warn(`Code is not correct for queue, code: ${codeParam}, queue: ${queueParam}`);
                     return webSocketRequest.reject(403, 'Secret is invalid.');
                 }
 
@@ -117,11 +119,11 @@ async function requestHandler(webSocketRequest: request) {
 
             return webSocketRequest.accept(validProtocol);
         } else {
-            console.error('Protocol does not match any known protocols');
+            methodLogger.error('Protocol does not match any known protocols');
             return webSocketRequest.reject(400, 'No matching protocol');
         }
     } catch (e) {
-        console.error(e);
+        methodLogger.error(e);
         return webSocketRequest.reject(500, 'Internal server error');
     }
 }
@@ -159,6 +161,7 @@ async function connectionCloseHandler(connection: connection, _reason: number, _
 }
 
 export async function alertMessageQueueHandler(channel: string, message: string) {
+    const methodLogger = logger.child({file: __filename, method: 'alertMessageQueueHandler'});
     const match = channel.match(alertQueueSubKeyRegex);
     if (!match) {
         return;
@@ -167,11 +170,11 @@ export async function alertMessageQueueHandler(channel: string, message: string)
     const queueId = Number.parseInt(match[1]);
 
     if (!message) {
-        console.error('Alert message queue handler was called, but no message was found in the queue!');
+        methodLogger.error('Alert message queue handler was called, but no message was found in the queue!');
         return;
     }
 
-    console.log(message);
+    methodLogger.debug(message);
     const parsedMsg = JSON.parse(message);
     if (isEmitNextAlertMessage(parsedMsg)) {
         const websockMessage: SendAlertMessage = {
@@ -182,13 +185,14 @@ export async function alertMessageQueueHandler(channel: string, message: string)
 
         await emitToAllForQueue(queueId, websockMessage);
     } else {
-        console.error('Alert message queue handler was called, but the message was invalid! Message: ' + message);
+        methodLogger.error('Alert message queue handler was called, but the message was invalid! Message: ' + message);
     }
 }
 
 function getAlertProtocolHandler(connection: connection) {
+    const methodLogger = logger.child({file: __filename, method: 'alertProtocalHandler'});
     return async function (message: IMessage) {
-        console.log(message.utf8Data);
+        methodLogger.debug(message.utf8Data);
         const messageObj = JSON.parse(message.utf8Data);
         if (isInformAlertCompleteMessage(messageObj)) {
             const socket = <AlertSocket>connection.socket;

@@ -8,7 +8,6 @@ import {BasicWebhookRenewalScheduler} from '@binaryfissiongames/twitch-webhooks/
 import {setupRoutes} from './routes';
 import * as https from 'https';
 import * as http from 'http';
-import * as fs from 'fs';
 import {SequelizeTwitchWebhookPersistenceManager} from './webhooks';
 import {getOAuthToken, refreshToken} from './request';
 import {parseMySqlConnString} from './model/util';
@@ -17,6 +16,7 @@ import {EXPRESS_SESSION_COOKIE_NAME} from './constants';
 import {initWebsocketServer} from './websocket-api/alerts';
 import {shutdownGracefully} from './shutdown';
 import {initProcessUpkeep} from './process-management/logic';
+import {logger} from './logging';
 
 const MySqlStore = mysql_session(session);
 const mySqlStoreOptions = parseMySqlConnString(process.env.DATABASE_URL);
@@ -29,8 +29,14 @@ const sess: SessionOptions = {
     resave: false,
     saveUninitialized: false,
     name: EXPRESS_SESSION_COOKIE_NAME,
+    cookie: {
+        httpOnly: true,
+        sameSite: 'none',
+        secure: true
+    }
 };
 
+app.set('trust proxy', 1);
 app.use(session(sess)); // Need to set up session middleware
 
 setupTwitchOAuthPath({
@@ -42,14 +48,15 @@ setupTwitchOAuthPath({
         res.end();
     }, // Callback when oauth info is gotten. Session info should be used
     client_id: process.env.TWITCH_CLIENT_ID, // Twitch client ID
-    client_secret: process.env.CLIENT_SECRET, // Twitch client secret
+    client_secret: process.env.TWITCH_CLIENT_SECRET, // Twitch client secret
     force_verify: false, // If true, twitch will always ask the user to verify. If this is false, if the app is already authorized, twitch will redirect immediately back to the redirect uri
     redirect_uri: process.env.REDIRECT_URI, // URI to redirect to (this is the URI on this server, so the path defines the endpoint!)
     scopes: ['channel:read:subscriptions', 'user:read:email', 'moderation:read'], // List of scopes your app is requesting access to
     token_url: process.env.NODE_ENV == 'development' ? process.env.MOCK_TOKEN_URL : undefined,
     authorize_url: process.env.NODE_ENV == 'development' ? process.env.MOCK_AUTH_URL : undefined,
     errorHandler(e){
-        console.error(e);
+        const methodLogger = logger.child({file: __filename, method: '(OAuthErrorHandler)'});
+        methodLogger.error(e);
         return e.message;
     }
 });
@@ -70,7 +77,8 @@ const webhookManager: TwitchWebhookManager = new TwitchWebhookManager({
 
 //webhookManager.on('message', () => {});
 webhookManager.on('error', (e) => {
-    console.log(e);
+    const methodLogger = logger.child({file: __filename, method: '(WebhookManagerErrorHandler)'});
+    methodLogger.error(e);
 });
 
 setupRoutes(app);
@@ -78,6 +86,7 @@ setupRoutes(app);
 let server: http.Server;
 let httpsServer: https.Server;
 async function startup() {
+    const methodLogger = logger.child({file: __filename, method: 'startup'});
     if (process.env.NODE_ENV === 'development') {
         const {addClient, setUpMockAuthServer} = await import('twitch-mock-oauth-server/dist');
         const {setUpMockWebhookServer} = await import('twitch-mock-webhook-hub/dist');
@@ -110,28 +119,33 @@ async function startup() {
 
     if (httpsServer) {
         httpsServer.listen(Number.parseInt(process.env.HTTPS_PORT), async () => {
-            console.log(`HTTPS listening on port ${process.env.HTTPS_PORT}`);
+            methodLogger.info(`HTTPS listening on port ${process.env.HTTPS_PORT}`);
             await webhookManager.init();
         });
     }
 
     server.listen(Number.parseInt(process.env.HTTP_PORT), () =>
-        console.log(`HTTP listening on port ${process.env.HTTP_PORT}`)
+        methodLogger.info(`HTTP listening on port ${process.env.HTTP_PORT}`)
     );
 }
 
-startup().then(() => console.log('Server is started '));
+startup().then(() => {
+    const methodLogger = logger.child({file: __filename, method: '(afterStartupHandler)'});
+    methodLogger.info('Server is started ')
+});
 
 process.on('SIGINT', shutdownGracefully);
 process.on('SIGTERM', shutdownGracefully);
 process.on('unhandledRejection', async (e, p) => {
-    console.error('Unhandled promise rejection caught, ', p);
-    console.error('Shutting down process....');
+    const methodLogger = logger.child({file: __filename, method: '(unhandledRejectionHandler)'});
+    methodLogger.error('Unhandled promise rejection caught, ', p);
+    methodLogger.error('Shutting down process....');
     await shutdownGracefully();
 });
 process.on('uncaughtException', async (e) => {
-    console.error('Exception was uncaught, ', e);
-    console.error('Shutting down process....');
+    const methodLogger = logger.child({file: __filename, method: '(uncaughtExceptionHandler)'});
+    methodLogger.error('Exception was uncaught, ', e);
+    methodLogger.error('Shutting down process....');
     await shutdownGracefully();
 });
 

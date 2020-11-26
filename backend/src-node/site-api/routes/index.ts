@@ -6,6 +6,7 @@ import {isGenericError} from '../errors/common';
 import {GenericResponse} from 'twitch_broadcasting_suite_shared';
 import * as crypto from 'crypto';
 import * as bodyParser from 'body-parser';
+import {logger} from '../../logging';
 
 function addApiRoutes(app: Application) {
     //Set up CORS
@@ -27,8 +28,11 @@ function addApiRoutes(app: Application) {
         if (req.headersSent) {
             return next(err);
         }
+        const methodLogger = logger.child({file: __filename, method: '(api endpoint)'});
+
         if (isGenericError(err)) {
-            console.error(err.errorId, ' >> ', err);
+            methodLogger.error(err.errorId + ' >> ' + 'for endpoint ' + req.originalUrl + `(${req.method})` +':' +  JSON.stringify(err));
+            methodLogger.error(err);
             const errResp: GenericResponse = {
                 state: {
                     needsReauth: err.needsReauth,
@@ -43,13 +47,14 @@ function addApiRoutes(app: Application) {
             res.end();
         } else {
             const newId = crypto.randomBytes(4).toString('hex');
-            console.error(newId, ' >> ', err);
+            methodLogger.error(newId + ' >> ' + 'for endpoint ' + req.originalUrl + `(${req.method})` +':' +  JSON.stringify(err));
+            methodLogger.error(err);
             const errResp: GenericResponse = {
                 state: {
                     needsReauth: false,
                     error: true,
                     userFacingErrorMessage:
-                        'An unknown error occured.  If this error persists, please contact us by sending an email to support@binaryfissiongames.com!',
+                        'An unknown error occured.  If this error persists, please contact us by sending an email to support@binaryfissiongames.com!', // TODO: Configurable email here
                     errorId: newId,
                 },
             };
