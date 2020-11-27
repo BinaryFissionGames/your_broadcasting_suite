@@ -2,10 +2,12 @@ FROM node:12
 ARG SERVER_PORT=3080
 ARG SERVER_HTTPS_PORT=3443
 WORKDIR /app
-COPY backend ./
+COPY backend/package.json backend/package-lock.json ./
 COPY ./shared ../shared
 RUN npm install --no-audit
+COPY backend/prisma ./prisma
 RUN npx prisma generate
+COPY backend ./
 EXPOSE $SERVER_PORT $SERVER_HTTPS_PORT
 ENV HTTP_PORT=$SERVER_PORT HTTPS_PORT=$SERVER_HTTPS_PORT
 CMD ["npm", "run", "run-dev"]

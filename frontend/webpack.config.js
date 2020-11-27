@@ -73,7 +73,7 @@ module.exports = {
     plugins: [
         new webpack.DefinePlugin({
             API_SERVER: JSON.stringify(process.env.API_SERVER || 'https://api.localhost'), // Api server; In production, this would be something like api.binaryfissiongames.com (maybe)
-            WEBSOCKET_SERVER: JSON.stringify(process.env.WEBSOCKET_SERVER || 'wss://api.localhost'), // Websocket server; likely the same as API_SERVER.
+            WEBSOCKET_SERVER: JSON.stringify(process.env.WEBSOCKET_SERVER || 'wss://api.localhost'), // Websocket server; likely the same as API_SERVER, except using the wss protocol
         }),
         new VueLoaderPlugin(),
     ],
