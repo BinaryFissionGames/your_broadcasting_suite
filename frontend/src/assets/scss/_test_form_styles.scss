@@ -1,0 +1,57 @@
+@use "colors_and_text";
+
+.test-form {
+    min-width: 300px;
+    min-height: 450px;
+    border-radius: 5px;
+    background-color: colors_and_text.$secondary-color;
+    border-color: black;
+    border-style: solid;
+    border-width: 1px;
+    padding: 20px;
+    align-items: flex-start;
+    justify-content: start;
+    flex-flow: column;
+    position: relative;
+    margin: 10px;
+}
+
+.test-form-header {
+    text-align: center;
+    margin: 0 auto 20px auto;
+}
+
+.test-form-label {
+    margin-bottom: 5px;
+    font-size: 15px;
+    display: block;
+}
+
+.test-form-text-box {
+    margin-bottom: 20px;
+}
+
+.test-form-text-area {
+    margin-bottom: 20px;
+    height: 128px;
+    width: 290px;
+    resize: none;
+}
+
+.test-form-number-box {
+    margin-bottom: 20px;
+}
+
+.test-form-check-box {
+    margin-bottom: 20px;
+}
+
+.test-form-select {
+    margin-bottom: 20px;
+}
+
+.test-form-wrapper {
+    min-height: 100%;
+    min-width: 100%;
+    flex-wrap: wrap;
+}

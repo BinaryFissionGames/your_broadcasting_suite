@@ -1,0 +1,35 @@
+@use 'colors_and_text';
+
+.loading-overlay {
+    z-index: 9999;
+    height: 100%;
+    width: 100%;
+    background-color: colors_and_text.$loading-background-color;
+    display: flex;
+    position: absolute;
+    align-items: center;
+    justify-content: center;
+}
+
+.transparent-loading-overlay {
+    z-index: 9999;
+    height: 100%;
+    width: 100%;
+    background-color: colors_and_text.$loading-background-color-transparent;
+    display: flex;
+    position: absolute;
+    align-items: center;
+    justify-content: center;
+    top: 0;
+    left: 0;
+}
+
+.loading-svg {
+    width: 100px;
+    height: 100px;
+}
+
+.loading-svg-10-percent {
+    width: 10%;
+    height: 10%;
+}

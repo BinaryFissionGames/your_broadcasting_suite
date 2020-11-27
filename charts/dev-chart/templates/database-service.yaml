@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{.Values.mysqlServiceName}}
+spec:
+  ports:
+    - protocol: TCP
+      port: {{.Values.mysqlPort}}
+      targetPort: {{.Values.mysqlPort}}
+---
+apiVersion: v1
+kind: Endpoints
+metadata:
+  name: mysql
+subsets:
+  - addresses:
+      - ip: {{.Values.mysqlHost}}
+    ports:
+      - port: {{.Values.mysqlPort}}

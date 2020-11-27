@@ -1,0 +1,25 @@
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: api-ingress-{{ .Release.Name }}
+  labels:
+    app: YourBroadcastingSuite
+spec:
+  tls:
+    - hosts:
+        - {{ .Values.apiHostName }}
+        {{- range .Values.extraApiHostNames }}
+        - {{ . }}
+        {{- end }}
+      secretName: cert-{{ .Release.Name }}-api-secret
+  rules:
+    - host: {{ .Values.apiHostName }}
+      http:
+        paths:
+          - backend:
+              serviceName: api-server-service-{{ .Release.Name }}
+              servicePort: {{ .Values.apiPortHttp }}
+status:
+  loadBalancer:
+    ingress:
+      - hostname: {{ .Values.apiHostName }}

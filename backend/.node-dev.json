@@ -1,0 +1,4 @@
+{
+    "notify": true,
+    "ignore": ["migrations", "prisma", "sequelize-config", "build-node", ".idea"]
+}

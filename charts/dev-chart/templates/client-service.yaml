@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: client-server-service-{{ .Release.Name }}
+  labels:
+    app: YourBroadcastingSuiteClientServer
+spec:
+  ports:
+    - name: http
+      port: 443
+      targetPort: 443
+  selector:
+    app: YourBroadcastingSuiteClientServer

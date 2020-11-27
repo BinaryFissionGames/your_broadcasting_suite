@@ -1,4 +1,1 @@
-database/
-build-node/
-node_modules/
-config.env
+node_modules

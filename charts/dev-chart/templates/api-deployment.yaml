@@ -1,0 +1,117 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-server-deployment-{{ .Release.Name }}
+  labels:
+    app: YourBroadcastingSuite
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: YourBroadcastingSuiteAPIServer
+  template:
+    metadata:
+      labels:
+        app: YourBroadcastingSuiteAPIServer
+    spec:
+      containers:
+        - name: your-broadcasting-suite-api-server
+          image: {{ .Values.apiServerImage }}
+          imagePullPolicy: Never
+          ports:
+            - containerPort: {{ .Values.apiPortHttp }}
+              name: http
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.apiPortHttp }}
+            initialDelaySeconds: 30
+            periodSeconds: 15
+            failureThreshold: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.apiPortHttp }}
+            initialDelaySeconds: 5
+            periodSeconds: 15
+            timeoutSeconds: 10
+          env:
+            - name: PROCESS_ID
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.uid
+            - name: NODE_ENV
+              valueFrom:
+                configMapKeyRef:
+                  name: api-server-config-{{ .Release.Name }}
+                  key: env
+            - name: TWITCH_CLIENT_ID
+              valueFrom:
+                configMapKeyRef:
+                  name: api-server-config-{{ .Release.Name }}
+                  key: twitch_client_id
+            - name: REDIRECT_URI
+              valueFrom:
+                configMapKeyRef:
+                  name: api-server-config-{{ .Release.Name }}
+                  key: oauth_redirect_uri
+            - name: HOST_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: api-server-config-{{ .Release.Name }}
+                  key: host_name
+            - name: WEBHOOK_LEASE_SECONDS
+              valueFrom:
+                configMapKeyRef:
+                  name: api-server-config-{{ .Release.Name }}
+                  key: webhook_lease_in_seconds
+            - name: APPLICATION_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: api-server-config-{{ .Release.Name }}
+                  key: client_application_url
+            - name: CORS_ALLOW_ORIGINS
+              valueFrom:
+                configMapKeyRef:
+                  name: api-server-config-{{ .Release.Name }}
+                  key: allowed_origins
+            - name: TWITCH_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: api-server-secret-{{ .Release.Name }}
+                  key: twitch_client_secret
+            - name: SESSION_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: api-server-secret-{{ .Release.Name }}
+                  key: session_secret
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: api-server-secret-{{ .Release.Name }}
+                  key: database_connect_url
+            - name: REDIS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: api-server-secret-{{ .Release.Name }}
+                  key: redis_connect_url
+            - name: MOCK_HUB_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: api-server-config-{{ .Release.Name }}
+                  key: mock_hub_url
+            - name: MOCK_AUTH_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: api-server-config-{{ .Release.Name }}
+                  key: mock_auth_url
+            - name: MOCK_TOKEN_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: api-server-config-{{ .Release.Name }}
+                  key: mock_token_url
+            - name: MOCK_VALIDATE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: api-server-config-{{ .Release.Name }}
+                  key: mock_validate_url

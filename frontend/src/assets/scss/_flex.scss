@@ -1,0 +1,17 @@
+.flexbox {
+    display: inline-flex;
+}
+
+.flex-center-top-align {
+    align-items: flex-start;
+    align-content: flex-start;
+    flex-flow: row;
+}
+
+.flex-space-evenly {
+    justify-content: space-evenly;
+}
+
+.flexbox-block {
+    display: flex;
+}

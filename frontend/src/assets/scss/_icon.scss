@@ -1,0 +1,10 @@
+.hamburgerIcon {
+    width: 25px;
+    height: 25px;
+    float: right;
+    margin: 5px ((40px - 25px) / 2) 10px ((40px - 25px) / 2);
+}
+
+.hamburgerIcon:hover {
+    cursor: pointer;
+}

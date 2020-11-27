@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/../twitch_broadcasting_suite/.idea/twitch_broadcasting_suite.iml" filepath="$PROJECT_DIR$/../twitch_broadcasting_suite/.idea/twitch_broadcasting_suite.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/twitch_broadcasting_suite.iml" filepath="$PROJECT_DIR$/.idea/twitch_broadcasting_suite.iml" />
     </modules>
   </component>
 </project>

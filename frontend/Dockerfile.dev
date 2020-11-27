@@ -1,0 +1,7 @@
+FROM node:12
+WORKDIR /app
+COPY frontend ./
+COPY ./shared ../shared
+RUN npm install --no-audit
+EXPOSE 8080
+CMD ["npm", "run", "run-dev"]
