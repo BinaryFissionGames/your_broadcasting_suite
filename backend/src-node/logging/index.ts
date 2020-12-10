@@ -7,15 +7,8 @@ const logFormat = winston.format.printf(({level, message, timestamp, file, metho
 });
 
 const logger = winston.createLogger({
-    transports: [
-        new winston.transports.Console()
-    ],
-    format: winston.format.combine(
-        winston.format.timestamp(),
-        logFormat
-    )
+    transports: [new winston.transports.Console()],
+    format: winston.format.combine(winston.format.timestamp(), logFormat),
 });
 
-export {
-    logger
-}
+export {logger};

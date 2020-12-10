@@ -32,8 +32,8 @@ const sess: SessionOptions = {
     cookie: {
         httpOnly: true,
         sameSite: 'none',
-        secure: true
-    }
+        secure: true,
+    },
 };
 
 app.set('trust proxy', 1);
@@ -54,11 +54,11 @@ setupTwitchOAuthPath({
     scopes: ['channel:read:subscriptions', 'user:read:email', 'moderation:read'], // List of scopes your app is requesting access to
     token_url: process.env.NODE_ENV == 'development' ? process.env.MOCK_TOKEN_URL : undefined,
     authorize_url: process.env.NODE_ENV == 'development' ? process.env.MOCK_AUTH_URL : undefined,
-    errorHandler(e){
+    errorHandler(e) {
         const methodLogger = logger.child({file: __filename, method: '(OAuthErrorHandler)'});
         methodLogger.error(e);
         return e.message;
-    }
+    },
 });
 
 const resubScheduler = new BasicWebhookRenewalScheduler();
@@ -131,7 +131,7 @@ async function startup() {
 
 startup().then(() => {
     const methodLogger = logger.child({file: __filename, method: '(afterStartupHandler)'});
-    methodLogger.info('Server is started ')
+    methodLogger.info('Server is started ');
 });
 
 process.on('SIGINT', shutdownGracefully);

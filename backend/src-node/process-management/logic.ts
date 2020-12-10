@@ -70,9 +70,9 @@ export async function initProcessUpkeep(processId: string) {
 
 export async function shutdownProcessUpkeep() {
     const methodLogger = logger.child({file: __filename, method: 'shutdownProcessUpkeep'});
-    methodLogger.info('shutting down process upkeep')
+    methodLogger.info('shutting down process upkeep');
     if (currentJob) {
-        methodLogger.info('current upkeep job is being removed')
+        methodLogger.info('current upkeep job is being removed');
         await currentJob.remove();
     }
     clearInterval(upkeepInterval);

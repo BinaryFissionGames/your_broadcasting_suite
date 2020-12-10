@@ -5,7 +5,7 @@ import {validateToken} from '../../twitch-api/oauth';
 import {logger} from '../../logging';
 
 async function createOrGetUser(tokenInfo: TokenInfo): Promise<User> {
-    const methodLogger = logger.child({file: __filename, method: 'createOrGetUser'})
+    const methodLogger = logger.child({file: __filename, method: 'createOrGetUser'});
     methodLogger.info(tokenInfo);
     const user = await prisma.user.findMany({
         where: {

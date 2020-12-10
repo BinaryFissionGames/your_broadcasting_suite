@@ -12,7 +12,8 @@ const redisClient = redis.createClient({
         const retryLogger = logger.child({file: __filename, method: 'redisRetryStrategy'});
         // Always retry. But also log.
         retryLogger.error(
-            `Redis is reconnecting. Attempt: ${options.attempt}, Total retry time: ${options.total_retry_time}, error: ` + JSON.stringify(options.error)
+            `Redis is reconnecting. Attempt: ${options.attempt}, Total retry time: ${options.total_retry_time}, error: ` +
+                JSON.stringify(options.error)
         );
         let reconnectTime;
         if (options.attempt > max_reconnect_time_num_attempts) {

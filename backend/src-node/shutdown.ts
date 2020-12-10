@@ -10,7 +10,7 @@ import {logger} from './logging';
 export async function shutdownGracefully() {
     let exitCode = 0;
     const closeServer = promisify(server.close.bind(server));
-    const methodLogger = logger.child({file: __filename, method: 'shutdownGracefully'})
+    const methodLogger = logger.child({file: __filename, method: 'shutdownGracefully'});
     methodLogger.info('Gracefully shutting down...');
 
     try {

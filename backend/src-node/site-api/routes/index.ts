@@ -28,11 +28,11 @@ function addApiRoutes(app: Application) {
     //This is to help protect against cross-site scripting attacks.
     app.use(API_PATH_PREFIX, function (req, _res, next) {
         const ref = req.headers.referer;
-        if(!ref){
+        if (!ref) {
             return next(new GenericError('Referer must be either the API server itself, or the application.'));
         }
         const refHostname = new URL(ref).hostname;
-        if(applicationHostname === refHostname || apiHostname === refHostname){
+        if (applicationHostname === refHostname || apiHostname === refHostname) {
             return next();
         }
         return next(new GenericError('Referer must be either the API server itself, or the application.'));
@@ -48,7 +48,9 @@ function addApiRoutes(app: Application) {
         const methodLogger = logger.child({file: __filename, method: '(api endpoint)'});
 
         if (isGenericError(err)) {
-            methodLogger.error(err.errorId + ' >> ' + 'for endpoint ' + req.originalUrl + `(${req.method})` +':' +  JSON.stringify(err));
+            methodLogger.error(
+                err.errorId + ' >> ' + 'for endpoint ' + req.originalUrl + `(${req.method})` + ':' + JSON.stringify(err)
+            );
             methodLogger.error(err);
             const errResp: GenericResponse = {
                 state: {
@@ -64,7 +66,9 @@ function addApiRoutes(app: Application) {
             res.end();
         } else {
             const newId = crypto.randomBytes(4).toString('hex');
-            methodLogger.error(newId + ' >> ' + 'for endpoint ' + req.originalUrl + `(${req.method})` +':' +  JSON.stringify(err));
+            methodLogger.error(
+                newId + ' >> ' + 'for endpoint ' + req.originalUrl + `(${req.method})` + ':' + JSON.stringify(err)
+            );
             methodLogger.error(err);
             const errResp: GenericResponse = {
                 state: {

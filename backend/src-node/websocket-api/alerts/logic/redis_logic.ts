@@ -131,7 +131,6 @@ export async function checkAndPublishNextAlert(queueId: number): Promise<boolean
     const get = promisify(client.get.bind(client));
     const methodLogger = logger.child({file: __filename, method: 'checkAndPublishNextAlert'});
     return new Promise((resolve, reject) => {
-
         client.watch(getAlertClientSetCompletedKey(queueId), getAlertClientSetKey(queueId), async (err, _res) => {
             try {
                 if (err) {
